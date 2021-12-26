@@ -1,0 +1,14 @@
+Create virtual enviroment for python: python -m venv path_to_venv
+Activate venv: path_to_venv\Scripts\activate
+Save packages in reqs.txt (while in venv): pip freeze > reqs.txt
+Install packages from reqs.txt: pip install -r reqs.txt
+Set env variable for flask app: $env:FLASK_APP = "appName"
+Run flask server: flask run [options]
+
+Docker show images: docker images
+Docker show running images: docker ps
+Docker stop running image: docker stop containerID
+Docker free resources: docker containerID prune
+Build docker img: docker build --tag imgName pathToProject
+Run docker img: docker run imgName
+Run docker img( to access server in browser): docker run -d -p portNum:portNum imgName
