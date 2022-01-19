@@ -1,0 +1,13 @@
+input {
+    width: 200px;
+    height: 30px;
+    border-radius: 12px;
+    background-color: cadetblue;
+}
+
+button{
+    width: 100px;
+    height: 25px;
+    border-radius: 12px;
+    background-color: cadetblue;
+}
