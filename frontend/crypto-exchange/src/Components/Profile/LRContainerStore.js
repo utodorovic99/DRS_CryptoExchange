@@ -11,11 +11,13 @@ export const initLRContainerState = {
 export function lrContainerReducer(state=initLRContainerState, action){
     if(action.type == SHOW){
         return {
+            type: action.type,
             show: true
         };
     }
     else {
         return {
+            type: action.type,
             show: false
         };
     }

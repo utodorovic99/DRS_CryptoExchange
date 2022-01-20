@@ -17,14 +17,21 @@
   color: #61dafb;
 }
 
-.grid-container {
+.grid-containerApp {
   display: grid;
   grid-gap: 50px 100px;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(10, 1fr);
 }
 
-.item1 {
+.item1App {
   grid-column: 1;
-  grid-row: 1/auto;
+  grid-row: 1;
 }
+
+.item2App {
+  grid-column: 1;
+  grid-row: 2/auto;
+}
+
+

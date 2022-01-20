@@ -13,18 +13,21 @@ export const initLoginShowState = {
 export function loginShowReducer(state=initLoginShowState, action){
     if(action.type === SHOW_LOGIN){
         return {
+            type: action.type,
             showLogin: true,
             showRegister: false
         };
     }
     else if(action.type === SHOW_REGISTER){
         return {
+            type: action.type,
             showLogin: false,
             showRegister: true
         };
     }
     else{
         return{
+            type: action.type,
             showLogin: false,
             showRegister: false    
         };

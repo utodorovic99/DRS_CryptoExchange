@@ -11,11 +11,12 @@ export const initLoginState = {
 export function loginReducer(state=initLoginState, action){
     if(action.type === USER_LOGGED){
         return {
+            type: action.type,
             userJson: action.userJson
         };
     }
     else {
-        return state;
+        return initLoginState;
     }
 }
 

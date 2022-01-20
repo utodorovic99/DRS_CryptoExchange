@@ -14,7 +14,7 @@ export class LRContainer extends Component{
         this.state = {
             loginHidden: true,
             registerHidden: true,
-            hidden: sessionStorage.getItem('userJson') !== undefined
+            hidden: props.hidden
         };
 
         this.componentDidMount = this.componentDidMount.bind(this);
@@ -100,16 +100,24 @@ export class LRContainer extends Component{
         sessionStorage.removeItem('userJson');
         this.state.hidden = false;
 
+        loginStore.dispatch({
+            type: NO_USER_LOGGED,
+            userJson: null
+        });
+
+        console.log('after logout:');
+        console.log(loginStore.getState());
+
         this.setState(this.state);
     }
 
     render(){
-        return <div class="grid-container">
-            <div class="item1" hidden={this.state.hidden}>
+        return <div className="grid-container">
+            <div className="item1" hidden={this.state.hidden}>
                 <button name='login' onClick={this.onClick}>Login</button>
                 <Login hidden={this.state.loginHidden}/>
             </div>
-            <div class="item2" hidden={this.state.hidden}>
+            <div className="item2" hidden={this.state.hidden}>
                 <button name='register' onClick={this.onClick}>Register</button>
                 <Register hidden={this.state.registerHidden}/>
             </div>
