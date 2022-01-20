@@ -1,17 +1,10 @@
-from enum import unique
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
-from config import db, ma, Config, SQLAlchemy
 
-app = Flask(__name__)
-app.config.from_object(Config)
-CORS(app, supports_credentials=True)
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+from flask_sqlalchemy.model import Model
+from flask_sqlalchemy.utils import sqlalchemy as db
+#from config import db, ma 
 
-class IUser(db.Model):
+
+class IUser(Model):
     __tablename__ = "iuser"
     id = db.Column(db.Integer, primary_key = True)
     firstName = db.Column(db.String(30))
@@ -22,14 +15,14 @@ class IUser(db.Model):
     phoneNumber = db.Column(db.Integer)
     password = db.Column(db.String(65))
     verified = db.Column(db.Boolean, default = False)
-    cryptoAccountId = db.relationship(
+    cryptoAccountId = db.Model.relationship(
         "CryptoAccount",
         backref="iuser",
         uselist=False
     )
 
 
-class CryptoAccount(db.Model):
+class CryptoAccount(Model):
     __tablename__ = "cryptoaccount"
     id = db.Column(db.Integer, primary_key = True)
     cryptoCurrency = db.relationship(
@@ -38,7 +31,7 @@ class CryptoAccount(db.Model):
     ) 
     userId = db.Column(db.Integer, db.ForeignKey("iuser.id"))
 
-class CryptoCurrencyAccount(db.Model):
+class CryptoCurrencyAccount(Model):
     __tablename__ = "cryptocurrencyaccount"
     id = db.Column(db.Integer, primary_key = True)
     cryptoAccountId = db.Column(
@@ -54,14 +47,14 @@ class CryptoCurrencyAccount(db.Model):
         )
     )
 
-class CryptoCurrency(db.Model):
+class CryptoCurrency(Model):
     __tablename__="cryptocurrency"
     id = db.Column(db.Integer, primary_key = True)
     cryptoName = db.Column(db.String(10), unique = True)
     exchangeRate = db.Column(db.Float)
 
 
-class Transaction(db.Model):
+class Transaction(Model):
     __tablename__ = "transaction"
     hashID = db.Column(db.String(256), primary_key=True)
     amount = db.Column(db.Float)
