@@ -1,6 +1,11 @@
 import React, {Component} from 'react';
 import './Login.css';
-import { loginShowStore } from './LRShowingStore';
+import { loginStore, USER_LOGGED } from './LoginStore';
+import { HIDE, lrContainerShowStore } from './LRContainerStore';
+import { loginShowStore, SHOW_NONE } from './LRShowingStore';
+
+const emailTemp = '123';
+const passwordTemp = '123';
 
 export class Login extends Component{
     constructor(props){
@@ -17,10 +22,14 @@ export class Login extends Component{
             },
             hiddenForm: this.props.hidden,
         }
-        
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentWillUnmount = this.componentWillUnmount.bind(this);
         this.onChangeInput = this.onChangeInput.bind(this);
         this.onLoginShow = this.onLoginShow.bind(this);
+        this.onLogin = this.onLogin.bind(this);
+    }
 
+    componentDidMount(){
         this.unsubscribeShow = loginShowStore.subscribe(this.onLoginShow);
     }
 
@@ -40,6 +49,53 @@ export class Login extends Component{
     onLoginShow(){
         this.state.hiddenForm = !loginShowStore.getState().showLogin;
         this.setState(this.state);
+    }
+
+    onLogin(){
+        if(
+            this.state.email.value === emailTemp &&
+            this.state.password.value === passwordTemp
+        ){
+
+            let userJson = {
+                email: this.state.email.value,
+                password: this.state.password.value
+            };
+
+            alert(String("User logged:" + JSON.stringify(userJson)));
+            sessionStorage.setItem('userJson', JSON.stringify(userJson));
+
+            loginShowStore.dispatch({
+                type: SHOW_NONE,
+                showLogin: false,
+                showRegister: false
+            });
+
+            lrContainerShowStore.dispatch({
+                type: HIDE,
+                show: false
+            });
+            
+
+            loginStore.dispatch({
+                type: USER_LOGGED,
+                userJson: JSON.stringify(userJson)
+            });
+
+            for(let k in this.state){
+                if(k != 'hiddenForm'){
+                    this.state[k] = {
+                        value: '',
+                        color: 'red'
+                    };
+                }
+            }
+
+            this.setState(this.state);
+        }
+        else {
+            alert("Wrong credentials.")
+        }
     }
 
     render(){
@@ -66,7 +122,7 @@ export class Login extends Component{
                 onChange={this.onChangeInput}
             />
             <br/>
-            <button>Submit</button>
+            <button onClick={this.onLogin}>Submit</button>
         </div>
     }
 }

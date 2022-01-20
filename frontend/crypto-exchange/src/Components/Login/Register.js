@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import './Login.css';
-import { loginShowStore } from './LRShowingStore';
+import { loginShowStore, SHOW_NONE } from './LRShowingStore';
 
 
 export class Register extends Component{
@@ -43,9 +43,14 @@ export class Register extends Component{
             hiddenForm: this.props.hidden,
         }
         
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentWillUnmount = this.componentWillUnmount.bind(this);
         this.onChangeInput = this.onChangeInput.bind(this);
         this.onRegisterShow = this.onRegisterShow.bind(this);   
-    
+        this.onRegister = this.onRegister.bind(this);
+    }
+
+    componentDidMount(){
         this.unsubscribeShow = loginShowStore.subscribe(this.onRegisterShow);
     }
 
@@ -64,6 +69,25 @@ export class Register extends Component{
 
     onRegisterShow(){
         this.state.hiddenForm = !loginShowStore.getState().showRegister;
+        this.setState(this.state);
+    }
+
+    onRegister(){
+        loginShowStore.dispatch({
+            type: SHOW_NONE,
+            showLogin: false,
+            showRegister: false
+        });
+
+        for(let k in this.state){
+            if(k != 'hiddenForm'){
+                this.state[k] = {
+                    value: '',
+                    color: 'red'
+                };
+            }
+        }
+
         this.setState(this.state);
     }
 
@@ -157,7 +181,7 @@ export class Register extends Component{
                 onChange={this.onChangeInput}
             />
             <br/>
-            <button>Submit</button>
+            <button onClick={this.onRegister}>Submit</button>
 
         </div>
     }
