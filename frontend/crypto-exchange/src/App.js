@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import { LRContainer } from './Components/Profile/LoginRegisterContainer';
 import { Profile } from './Components/Profile/Profile';
+import { CryptoTable } from './Components/Crypto/CryptoTable';
 
 const firstName = "blabla";
 const lastName = "blabla";
@@ -18,7 +19,7 @@ function App() {
         <div className="grid-containerApp">
           <div className="item1App">
             <LRContainer
-              hidden={sessionStorage.getItem('userJson') === undefined}
+              hidden={sessionStorage.getItem('userJson') !== null}
             />
           </div>
           <div className='item2App'>
@@ -32,8 +33,13 @@ function App() {
                 phoneNumber: phoneNumber,
                 email: email
               }}
-              hidden={sessionStorage.getItem('userJson') !== undefined}
+              hidden={sessionStorage.getItem('userJson') === null}
             ></Profile>
+          </div>
+          <div className='item3App'>
+            <CryptoTable>
+
+            </CryptoTable>
           </div>
         </div>
       </header>

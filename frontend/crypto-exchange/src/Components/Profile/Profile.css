@@ -1,4 +1,11 @@
 .profileForm{
-    background-color: gainsboro;
+    background-color: rgb(71, 130, 207);
     border-radius: 20px;
+}
+
+label{
+    width: fit-content;
+    height: fit-content;
+    font-size: medium;
+    color: black;
 }

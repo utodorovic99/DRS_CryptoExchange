@@ -106,7 +106,7 @@ export class LRContainer extends Component{
         });
 
         console.log('after logout:');
-        console.log(loginStore.getState());
+        console.log(loginStore.getState())
 
         this.setState(this.state);
     }

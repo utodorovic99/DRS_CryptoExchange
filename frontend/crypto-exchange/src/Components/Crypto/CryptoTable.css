@@ -1,0 +1,11 @@
+table *{
+    background-color: cadetblue;
+    font-size: medium;
+}
+
+td{
+    background-color: rgb(40, 96, 161);
+    color: rgb(19, 16, 16);
+    font-size: medium;
+    padding: 20px;
+}
