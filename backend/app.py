@@ -13,13 +13,14 @@ migrate = Migrate(app, db)
 
 class IUser(db.Model):
     __tablename__ = "iuser"
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
     firstName = db.Column(db.String(30))
     lastName = db.Column(db.String(30))
     address = db.Column(db.String(50))
+    email = db.Column(db.String(50))
     city = db.Column(db.String(50))
     country = db.Column(db.String(60))
-    phoneNumber = db.Column(db.Integer)
+    phoneNumber = db.Column(db.BigInteger)
     password = db.Column(db.String(65))
     verified = db.Column(db.Boolean, default = False)
     cryptoAccountId = db.relationship(
@@ -27,20 +28,39 @@ class IUser(db.Model):
         backref="iuser",
         uselist=False
     )
-
+    def __init__(
+            self, firstName, lastName, address, password, email, phoneNumber, country, city
+        ):
+            self.firstName = firstName
+            self.lastName = lastName
+            self.address = address
+            self.password = password
+            self.email = email
+            self.phoneNumber = phoneNumber
+            self.country = country
+            self.city = city
 
 class CryptoAccount(db.Model):
     __tablename__ = "cryptoaccount"
     id = db.Column(db.Integer, primary_key = True)
+    accountBalance = db.Column(db.Float)
     cryptoCurrency = db.relationship(
         "CryptoCurrencyAccount",
         backref="cryptoaccount"
     ) 
     userId = db.Column(db.Integer, db.ForeignKey("iuser.id"))
+    def _init_(
+            self,id,accountBalance,userId
+    ):
+            self.id = id
+            self.accountBalance = accountBalance
+            self.userId = userId
+
 
 class CryptoCurrencyAccount(db.Model):
     __tablename__ = "cryptocurrencyaccount"
     id = db.Column(db.Integer, primary_key = True)
+    cryptoBalance = db.Column(db.Float)
     cryptoAccountId = db.Column(
         db.Integer,
         db.ForeignKey( 
@@ -53,12 +73,24 @@ class CryptoCurrencyAccount(db.Model):
             "cryptocurrency.cryptoName"
         )
     )
+    def _init_(
+            self,cryptoBalance,cryptoAccountId,cryptoCurrencyId
+    ):
+            self.cryptoBalance = cryptoBalance
+            self.cryptoAccountId = cryptoAccountId
+            self.cryptoCurrencyId = cryptoCurrencyId
+
 
 class CryptoCurrency(db.Model):
     __tablename__="cryptocurrency"
     id = db.Column(db.Integer, primary_key = True)
     cryptoName = db.Column(db.String(10), unique = True)
     exchangeRate = db.Column(db.Float)
+    def __init__(
+            self, cryptoName, exchangeRate
+        ):
+           self.cryptoName = cryptoName,
+           self.exchangeRate = exchangeRate
 
 
 class Transaction(db.Model):
@@ -74,3 +106,15 @@ class Transaction(db.Model):
     )
     userfromid = db.Column(db.Integer, db.ForeignKey("iuser.id"))
     usertoid = db.Column(db.Integer, db.ForeignKey("iuser.id"))
+        
+    def _init_(
+            self,hashID,amount,state,cryptoCurrencyId,userfromid,usertoid
+    ):
+            self.hashID = hashID
+            self.amount = amount
+            self.state = state
+            self.cryptoCurrencyId = cryptoCurrencyId
+            self.userfromid = userfromid
+            self.usertoid = usertoid
+
+   
