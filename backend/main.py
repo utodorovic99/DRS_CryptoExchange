@@ -282,7 +282,7 @@ def StartTransaction():
 
     db.session.add(transaction)
     db.session.commit()
-
+    print(transaction)
     
     jsonObject = TransactionJson()
     trJson  =  jsonObject.dump(transaction)

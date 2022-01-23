@@ -9,7 +9,7 @@ class CryptoCurrencyJson(Schema):
     exchangeRate = fields.Float(dump_only=True)
 
 class TransactionJson(ma.Schema):
-    hashId = fields.Number()
+    hashId = fields.String()
     amount = fields.Float()
     state = fields.Str()
     cryptoCurrencyId = fields.Nested(CryptoCurrencyJson)
