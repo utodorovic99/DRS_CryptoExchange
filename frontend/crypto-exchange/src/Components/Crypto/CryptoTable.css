@@ -1,11 +1,12 @@
 table *{
     background-color: cadetblue;
     font-size: medium;
+    border-radius: 20px;
 }
 
-td{
+td, th{
     background-color: rgb(40, 96, 161);
-    color: rgb(19, 16, 16);
+    color: rgb(243, 243, 243);
     font-size: medium;
-    padding: 20px;
+    padding: 15px;
 }

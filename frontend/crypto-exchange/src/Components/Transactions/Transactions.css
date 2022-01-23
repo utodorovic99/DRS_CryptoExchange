@@ -1,0 +1,17 @@
+select{
+    border-radius: 20px;
+    width: 170px;
+}
+
+label{
+    color: black;
+    border-radius: 20px;
+    width: 200%;
+    height: 200%;
+    font-size: large;
+}
+
+.transtactionDiv{
+    background-color: deepskyblue;
+    border-radius: 30px;
+}

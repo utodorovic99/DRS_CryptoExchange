@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
+import { getViewUrl, serverUrl } from '../../Config';
 import './Login.css';
 import { loginShowStore, SHOW_NONE } from './LRShowingStore';
-
+import { sha256 } from 'js-sha256';
 
 export class Register extends Component{
     constructor(props){
@@ -73,22 +74,51 @@ export class Register extends Component{
     }
 
     onRegister(){
-        loginShowStore.dispatch({
-            type: SHOW_NONE,
-            showLogin: false,
-            showRegister: false
-        });
+        let userJson = {};
+        let valid = true;
 
         for(let k in this.state){
             if(k != 'hiddenForm'){
-                this.state[k] = {
-                    value: '',
-                    color: 'red'
-                };
+                valid &= this.state[k].value.length > 0;
+                userJson[k] = k != 'password' ? this.state[k].value : sha256(this.state[k].value).toString('hex');
             }
         }
+        
+        if(valid){
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userJson),
+            };
 
-        this.setState(this.state);
+            fetch(getViewUrl('registerUser'), requestOptions)
+            .then(res => {
+                if(!res.ok) throw Error("User with that email already exists.");
+                alert("User registered");
+            })
+            .catch(err => alert(err))
+            
+
+            loginShowStore.dispatch({
+                type: SHOW_NONE,
+                showLogin: false,
+                showRegister: false
+            });
+    
+            for(let k in this.state){
+                if(k != 'hiddenForm'){
+                    this.state[k] = {
+                        value: '',
+                        color: 'red'
+                    };
+                }
+            }
+    
+            this.setState(this.state);
+        }
+        else{
+            alert("Please fill out required fields.");
+        }
     }
 
     render(){

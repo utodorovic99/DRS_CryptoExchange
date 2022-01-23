@@ -105,9 +105,6 @@ export class LRContainer extends Component{
             userJson: null
         });
 
-        console.log('after logout:');
-        console.log(loginStore.getState())
-
         this.setState(this.state);
     }
 

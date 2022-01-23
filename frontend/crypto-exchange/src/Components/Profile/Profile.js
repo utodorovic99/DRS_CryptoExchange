@@ -2,26 +2,37 @@ import React, {Component} from 'react';
 import profilePic from './profile.png';
 import './Profile.css';
 import { loginStore, USER_LOGGED } from './LoginStore';
+import {getViewUrl} from '../../Config';
 
-
+function mapDbNameToUserInput(dbName){
+    switch (dbName) {
+        case "firstName":
+            return "First Name:";
+        case "lastName":
+            return "Last Name:";
+        case "address":
+            return "Address:";
+        case "email":
+            return "Email:";
+        case "city":
+            return "City:";
+        case "country":
+            return "Country:";
+        case "phoneNumber":
+            return "Phone number:";
+        case "password":
+            return "Password:";
+        default:
+            return "wrong name";
+    }
+}
 
 export class Profile extends Component{
     constructor(props){
         super(props);
 
-        let tempJson = {};
-
-        for(let k in props.userJson){
-            tempJson[k] = {
-                value: props.userJson[k],
-                color: 'black'
-            }
-        }
-
-        tempJson['password'] = '';
-
         this.state = {
-            userJson : tempJson,
+            userJson : JSON.parse(sessionStorage.getItem('userJson')),
             hidden : props.hidden,
             hiddenInfo: true
         };
@@ -31,6 +42,7 @@ export class Profile extends Component{
         this.onProfileClick = this.onProfileClick.bind(this);
         this.onLogin = this.onLogin.bind(this);
         this.onChangeInput = this.onChangeInput.bind(this);
+        this.onSaveProfile = this.onSaveProfile.bind(this);
     }
 
     componentDidMount(){
@@ -48,19 +60,88 @@ export class Profile extends Component{
 
     onLogin(){
         this.state.hidden = loginStore.getState().userJson != null ? false : true;
+        this.state.userJson = JSON.parse(loginStore.getState().userJson);
+        console.log(loginStore.getState().userJson);        
         this.setState(this.state);
     }
 
     onChangeInput(e){
-        let col = e.target.value.length == 0 ? 'red' : 'black';
-        
-        this.state[e.target.name].value = e.target.value;
-        this.state[e.target.name].color = col;
-
+        console.log(e.target.name);
+        this.state.userJson[e.target.name] = e.target.value;
         this.setState(this.state);
     }
 
+    onSaveProfile(){
+        const requestOptions = {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.state.userJson)
+        };
+
+        if(this.state.userJson.password == ''){
+            this.state.userJson.password = JSON.parse(sessionStorage.getItem('userJson')).password;
+        }
+
+        fetch(getViewUrl('updateUser'), requestOptions)
+        .then(res => {
+            if(!res.ok) throw Error('Not saved.');
+            alert('User saved');
+            sessionStorage.setItem('userJson', JSON.stringify(this.state.userJson));
+        })
+        .catch(err => alert(err));
+    }
+
     render(){
+
+        let formItems = [];
+
+        for(let k in this.state.userJson){
+            if(!(["cryptoAccountId", "id", "verified"].includes(k))){
+                formItems.push(
+                    <div>
+                        <label>{mapDbNameToUserInput(k)}</label>
+                            <input 
+                                type='text'
+                                placeholder={mapDbNameToUserInput(k)}
+                                name={k}
+                                value={
+                                    k != 'password' ?
+                                    this.state.userJson[k] : ''
+                                }
+                                style={{
+                                    borderColor: 'black'
+                                }}
+                                onChange={this.onChangeInput}
+                            />
+                        <br/>
+                    </div>
+                )
+            }
+        }
+
+        console.log(this.state.userJson);
+
+        let accountBalanceDiv = <div></div>;
+
+        if(this.state.userJson){
+            accountBalanceDiv = <div>
+                <label>Current balance[$]:</label>
+                <input disabled={true} type="number" 
+                    value={this.state.userJson.cryptoAccountId.accountBalance}
+                    style={{
+                        textAlign:'center'
+                    }}
+                ></input>
+            </div>;
+        }
+
+        let form = <div hidden={this.state.hiddenInfo} className='profileForm'>
+            {formItems}
+            <button onClick={this.onSaveProfile}>Save profile</button>
+            <br/>
+            {accountBalanceDiv}
+        </div>;
+        
         return <div hidden={this.state.hidden}>
             <div>
                 <img 
@@ -72,106 +153,7 @@ export class Profile extends Component{
                     onClick={this.onProfileClick}
                 ></img>
             </div>
-            <div hidden={this.state.hiddenInfo} className='profileForm'>
-            <label>First name:</label>
-            <input 
-                type='text'
-                placeholder='First name:'
-                name='firstName'
-                value={this.state.userJson.firstName.value}
-                style={{
-                    borderColor: this.state.userJson.firstName.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <label>Last name:</label>
-            <input 
-                type='text'
-                placeholder='Last name:'
-                name='lastName'
-                value={this.state.userJson.lastName.value}
-                style={{
-                    borderColor: this.state.userJson.lastName.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <label>Address:</label>
-            <input 
-                type='text'
-                placeholder='Address:'
-                name='address'
-                value={this.state.userJson.address.value}
-                style={{
-                    borderColor: this.state.userJson.address.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <label>City:</label>
-            <input 
-                type='text'
-                placeholder='City:'
-                name='city'
-                value={this.state.userJson.city.value}
-                style={{
-                    borderColor: this.state.userJson.city.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <label>Country:</label>
-            <input 
-                type='text'
-                placeholder='Country:'
-                name='country'
-                value={this.state.userJson.country.value}
-                style={{
-                    borderColor: this.state.userJson.country.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <label>Phone number:</label>
-            <input 
-                type='tel'
-                placeholder='Phone number:'
-                name='phoneNumber'
-                value={this.state.userJson.phoneNumber.value}
-                style={{
-                    borderColor: this.state.userJson.phoneNumber.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <label>Email:</label>
-            <input 
-                type='email'
-                placeholder='Email:'
-                name='email'
-                value={this.state.userJson.email.value}
-                style={{
-                    borderColor: this.state.userJson.email.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <label>New password:</label>
-            <input 
-                type='password'
-                placeholder='Password:'
-                name='password'
-                value={this.state.userJson.password.value}
-                style={{
-                    borderColor: this.state.userJson.password.color
-                }}
-                onChange={this.onChangeInput}
-            />
-            <br/>
-            <button>Save profile</button>
-            <br/>
-            </div>
+            {form}
         </div>
     }
 }

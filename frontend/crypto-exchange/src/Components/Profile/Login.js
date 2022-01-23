@@ -1,4 +1,7 @@
+import axios from 'axios';
+import { sha256 } from 'js-sha256';
 import React, {Component} from 'react';
+import { getViewUrl } from '../../Config';
 import './Login.css';
 import { loginStore, USER_LOGGED } from './LoginStore';
 import { HIDE, lrContainerShowStore } from './LRContainerStore';
@@ -52,49 +55,57 @@ export class Login extends Component{
     }
 
     onLogin(){
-        if(
-            this.state.email.value === emailTemp &&
-            this.state.password.value === passwordTemp
-        ){
-
-            let userJson = {
-                email: this.state.email.value,
-                password: this.state.password.value
+        let valid = this.state.email.value.length > 0 && this.state.password.value.length > 0;
+        
+        if(valid){
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: this.state.email.value,
+                    password: sha256(this.state.password.value)
+                })
             };
+    
+            fetch(getViewUrl('login'), requestOptions)
+            .then(async res => {
+                if(!res.ok) throw Error("Wrong credentials.");
+                let loggedUser = await res.json();
 
-            alert(String("User logged:" + JSON.stringify(userJson)));
-            sessionStorage.setItem('userJson', JSON.stringify(userJson));
-
-            loginShowStore.dispatch({
-                type: SHOW_NONE,
-                showLogin: false,
-                showRegister: false
-            });
-
-            lrContainerShowStore.dispatch({
-                type: HIDE,
-                show: false
-            });
-            
-
-            loginStore.dispatch({
-                type: USER_LOGGED,
-                userJson: JSON.stringify(userJson)
-            });
-
-            for(let k in this.state){
-                if(k != 'hiddenForm'){
-                    this.state[k] = {
-                        value: '',
-                        color: 'red'
-                    };
+                alert(String("User logged:" + JSON.stringify(loggedUser)));
+                sessionStorage.setItem('userJson', JSON.stringify(loggedUser));
+    
+                loginShowStore.dispatch({
+                    type: SHOW_NONE,
+                    showLogin: false,
+                    showRegister: false
+                });
+    
+                lrContainerShowStore.dispatch({
+                    type: HIDE,
+                    show: false
+                });
+                
+                loginStore.dispatch({
+                    type: USER_LOGGED,
+                    userJson: JSON.stringify(loggedUser)
+                });
+    
+                for(let k in this.state){
+                    if(k != 'hiddenForm'){
+                        this.state[k] = {
+                            value: '',
+                            color: 'red'
+                        };
+                    }
                 }
-            }
-
-            this.setState(this.state);
+    
+                this.setState(this.state);
+            })
+            .catch(err => alert(err));
         }
         else {
-            alert("Wrong credentials.")
+            alert("Please fill out required fields.");
         }
     }
 

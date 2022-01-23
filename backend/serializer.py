@@ -3,10 +3,10 @@ from marshmallow import Schema, fields
 from config import ma
 
 
-class CryptoCurrencyJson(ma.Schema):
-    id = fields.Number()
-    cryptoName = fields.Str()
-    exchangeRate = fields.Float()
+class CryptoCurrencyJson(Schema):
+    id = fields.Number(dump_only=True)
+    cryptoName = fields.String(dump_only=True)
+    exchangeRate = fields.Float(dump_only=True)
 
 class TransactionJson(ma.Schema):
     hashId = fields.Number()
@@ -23,11 +23,13 @@ class CryptoCurrencyAccountJson(ma.Schema):
 
 class CryptoAccountJson(ma.Schema):
     id = fields.Number()
+    accountBalance = fields.Float()
     cryptoCurrency = fields.List(fields.Nested(CryptoCurrencyAccountJson))
     userId = fields.Number()
 
 class UserJson(ma.Schema):
     id = fields.Number()
+    email = fields.Str()
     firstName = fields.Str()
     lastName = fields.Str()
     address = fields.Str()  

@@ -20,21 +20,43 @@
 .grid-containerApp {
   display: grid;
   grid-gap: 50px 100px;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(10, 1fr);
+  /* grid-template-columns: repeat(3, 1fr); */
+  /* grid-template-rows: repeat(10, 1fr); */
+  /* grid-template-rows: minmax(300, auto); */
+  grid-auto-columns: minmax(300,400);
+  grid-auto-rows: 100px;
+  grid-template-areas:
+    "a a b b b b c c c"
+    "a a b b b b c c c"
+    "d d b b b b c c c"
+    "d d b b b b c c c"
+    "d d b b b b e e e"
+    "d d b b b b e e e"
+    "f f f f f f f f f"
+    ;
+  align-items: start;
 }
 
 .item1App {
-  grid-column: 1;
-  grid-row: 1;
+  grid-area: a;
 }
 
 .item2App {
-  grid-column: 1;
-  grid-row: 2/auto;
+  grid-area: d;
 }
 
 .item3App{
-  grid-column: 3;
-  grid-row: 2/auto;
+  grid-area: b;
+}
+
+.item4App{
+  grid-area: c;
+}
+
+.item5App{
+  grid-area: e;
+}
+
+.item6App{
+  grid-area: f;
 }

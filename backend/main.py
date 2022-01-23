@@ -1,4 +1,4 @@
-from telnetlib import STATUS
+from numbers import Number
 from flask import Flask, request, Response, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from markupsafe import re
@@ -6,9 +6,25 @@ import sqlalchemy
 from config import db, ma, Config, SQLAlchemy
 from app import *
 import json
-from  models.serializer import *
+from serializer import *
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+import enum
+
+
+@app.route("/getCryptoCurrencies", methods=['GET'])
+def GetAllCurrencies():
+    def myFunc(e):
+        return e['id']
+
+    allCryptos  = CryptoCurrency.query.all()
+    cryptos = list(allCryptos)
+    jsonobject = CryptoCurrencyJson(many=True)
+    results = jsonobject.dump(cryptos)
+    results.sort(key=myFunc)
+    return jsonify(results)
+
+
 
 @app.route("/updateCryptoCurrency", methods=['GET'])
 def getCryptoData():
@@ -58,28 +74,28 @@ def getCryptoData():
     return jsonify(results)
 
 
-
-
 @app.route('/')
 def hello():
     return jsonify({"as": "asdasd"})
 
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
-    firstName = request.json["firstName"]
-    lastName = request.json["lastName"]
-    address = request.json["address"]
-    city = request.json["city"]
-    country = request.json["country"]
-    phoneNumber = request.json["phoneNumber"]
-    email = request.json["email"]
-    password = request.json["password"]
 
+    body = json.loads(request.data.decode('utf-8'))
+
+    firstName = body["firstName"]
+    lastName = body["lastName"]
+    address = body["address"]
+    city = body["city"]
+    country = body["country"]
+    phoneNumber = body["phoneNumber"]
+    email = body["email"]
+    password = body["password"]
 
     existUser = IUser.query.filter_by(email=email).first()
 
-    if(existUser == True):
-        return jsonify({"User already exist!"})
+    if(existUser != None):
+        return jsonify({"error":"User already exist!"}), 400
 
     iuser = IUser(firstName,lastName,address,password,email,phoneNumber,city,country)
 
@@ -94,21 +110,28 @@ def registerUser():
 
 @app.route('/login',methods=['POST'])
 def LogIn():
-    email = request.json["email"]
-    password = request.json["password"]
-    
+    body = json.loads(request.data.decode('utf-8'))
+    email = body["email"]
+    password = body["password"]
+  
     iuser = IUser.query.filter(IUser.email.like(email),
     IUser.password.like(password)).first()
     if iuser is None:
-        return jsonify({"error": "User with that email or password doesn't exist!"}),400
+        return jsonify({"error": "User with that email or password doesn't exist!"}),404
     if iuser.verified == False:
-        return jsonify({"error": "User not verified"}),400
-    return Response(status=200)
+        return jsonify({"error": "User not verified"}),404
+    jsonObject = UserJson()
+    userr  =  jsonObject.dump(iuser)
+
+    return jsonify(userr),200
 
 @app.route('/payment', methods =['POST'])
 def CreditCardPayment():
-    email = request.json["email"]
-    amount = request.json["amount"]
+    body = json.loads(request.data.decode('utf-8'))
+
+    email = body["email"]
+    amount = body["amount"]
+    
     iuser = IUser.query.filter_by(email = email).first()
     if iuser.verified == False:
         iuser.verified = True
@@ -123,17 +146,19 @@ def CreditCardPayment():
 
 @app.route("/updateUser",methods=['POST'])
 def updateUser():
-    id = request.json["id"]
+    body = json.loads(request.data.decode('utf-8'))
+    print(body)
+    id = body["id"]
     user = IUser.query.filter_by(id= id).first()
 
-    user.firstName = request.json["firstName"]
-    user.lastName = request.json["lastName"]
-    user.address = request.json["address"]
-    user.city = request.json["city"]
-    user.country = request.json["country"]
-    user.phoneNumber = request.json["phoneNumber"]
-    user.email = request.json["email"]
-    user.password = request.json["password"]
+    user.firstName = body["firstName"]
+    user.lastName = body["lastName"]
+    user.address = body["address"]
+    user.city = body["city"]
+    user.country = body["country"]
+    user.phoneNumber = body["phoneNumber"]
+    user.email = body["email"]
+    user.password = body["password"]
 
     db.session.add(user)
     db.session.commit()
@@ -144,10 +169,12 @@ def updateUser():
 
 @app.route('/buyNewCrypto',methods = ['POST'])
 def BuyCrypto():
-    email = request.json["email"]
-    amountDollars = request.json["amountDollars"]
-    cryptoCurrency = request.json["cryptoCurrency"]
-    cryptoAmount = request.json["cryptoAmount"]
+    body = json.loads(request.data.decode('utf-8'))
+
+    email = body["email"]
+    amountDollars = body["amountDollars"]
+    cryptoCurrency = body["cryptoCurrency"]
+    cryptoAmount = body["cryptoAmount"]
 
     iuser = IUser.query.filter_by(email = email).first()
     iuser.cryptoAccountId.accountBalance -= amountDollars
@@ -166,16 +193,38 @@ def BuyCrypto():
     return jsonify(userr)
 
 @app.route("/getTransactions", methods=['GET'])
-def getTransactionUser() : 
+def getTransactionUser():
+
+    userId = int(request.args.get('id'))
     transactions = Transaction.query.all() 
     
-    userTransaction = filter(lambda x : x.userfromid == request.json["id"] or x.usertoid == request.json["id"],transactions)
+    userTransaction = filter(lambda x : x.userfromid == userId or x.usertoid == userId,transactions)
     
     transactions = list(userTransaction)
-    json = TransactionJson(many=True)  
-    results = json.dump(transactions)
+   # trans = Transaction.all()
+    jsonn = TransactionJson(many=True)
+    results = jsonn.dump(transactions)
 
-    return jsonify(results)
+    for i in range(len(transactions)):
+        trName = transactions[i].cryptoCurrencyId
+        cur = CryptoCurrency.query.filter_by(cryptoName=trName).first()
+        curJson = CryptoCurrencyJson()
+        temp = curJson.dump(cur)
+        results[i]['cryptoCurrencyId'] = temp
+        
+    return jsonify(results),200
+
+@app.route("/doTransaction", methods= ['POST'])
+def StartTransaction():
+    body = json.loads(request.data.decode('utf-8'))
+
+    hashStr = body['hashStr']
+    amount = body['amount']
+    state = 'PROCESSING'
+    cryptoCurrencyId = body['cryptoName']
+    userformid = body['userfromid']
+    usertoid = body['usertoid']
+
 
 
 @app.route('/crypto/', methods=['POST','GET'])
@@ -204,5 +253,8 @@ def crypto_currency():
         return {"count": len(results), "crypto ": results}
 
 if __name__ == '__main__':
+    # app.app_context().push()
+    # db.init_app(app)
+    # db.create_all()
     app.run(debug=True)
     #getCryptoData()

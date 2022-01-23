@@ -3,14 +3,10 @@ import './App.css';
 import { LRContainer } from './Components/Profile/LoginRegisterContainer';
 import { Profile } from './Components/Profile/Profile';
 import { CryptoTable } from './Components/Crypto/CryptoTable';
-
-const firstName = "blabla";
-const lastName = "blabla";
-const address = "blabla";
-const city = "blabla";
-const country = "blabla";
-const phoneNumber = "blabla";
-const email = "blabla";
+import { SendCurrency } from './Components/Transactions/SendCurrency';
+import { Exchange } from './Components/Transactions/Exhange';
+import { Payment } from './Components/Transactions/Payment';
+// import { Transactions } from './Components/Transactions/Transactions';
 
 function App() {
   return (
@@ -24,23 +20,24 @@ function App() {
           </div>
           <div className='item2App'>
             <Profile
-              userJson={{
-                firstName: firstName,
-                lastName: lastName,
-                address: address,
-                city: city,
-                country: country,
-                phoneNumber: phoneNumber,
-                email: email
-              }}
               hidden={sessionStorage.getItem('userJson') === null}
             ></Profile>
           </div>
           <div className='item3App'>
             <CryptoTable>
-
             </CryptoTable>
           </div>
+          <div className='item4App'>
+            <SendCurrency></SendCurrency>
+            <br/>
+            <Payment></Payment>
+          </div>
+          <div className='item5App'>
+            <Exchange></Exchange>
+          </div>
+          {/* <div className='item6App'>
+            <Transactions></Transactions>
+          </div> */}
         </div>
       </header>
     </div>

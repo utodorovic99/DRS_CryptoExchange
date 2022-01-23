@@ -7,7 +7,7 @@ from config import db, ma, Config, SQLAlchemy
 
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=False)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
