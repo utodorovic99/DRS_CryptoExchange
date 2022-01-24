@@ -262,6 +262,11 @@ def StartTransaction():
     amount = body['amount']
     state = 'PROCESSING'
     
+    rndint = randint(1,1389)
+    k = keccak.new(digest_bits=256)
+    stringToHash = emailFrom+emailTo+str(amount)+str(rndint)
+    k.update(stringToHash.encode('utf-8'))
+
     cryptoCurrencyId1 = body['cryptoName']
     userfromid = body['userfromid']
     #naci drugog po mejlu
