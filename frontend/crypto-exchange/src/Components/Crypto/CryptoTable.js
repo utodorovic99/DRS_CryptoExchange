@@ -6,7 +6,6 @@ import leftArrowPic from './left-arrow.png';
 import rightArrowPic from './right-arrow.png';
 import downArrowPic from './down-arrow.png';
 import upArrowPic from './up-arrow.png';
-import axios from 'axios';
 
 export class CryptoTable extends Component{
     constructor(props){
@@ -28,9 +27,9 @@ export class CryptoTable extends Component{
     }
 
     componentDidMount(){
-        axios.get(getViewUrl("getCryptoCurrencies"))
-        .then(res => {
-            let data = res.data;
+        fetch(getViewUrl("getCryptoCurrencies"))
+        .then(async res => {
+            let data = await res.json();
             this.state.cryptos = [];
             
             for(let d in data){

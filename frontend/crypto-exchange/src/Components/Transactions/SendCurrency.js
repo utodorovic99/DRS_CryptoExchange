@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, {Component} from 'react';
 import { getViewUrl } from '../../Config';
 import { loginStore, NO_USER_LOGGED } from '../Profile/LoginStore';
@@ -17,9 +16,9 @@ export class SendCurrency extends Component{
     }
 
     componentDidMount(){
-        axios.get(getViewUrl("getCryptoCurrencies"))
-        .then(res => {
-            let data = res.data;
+        fetch(getViewUrl("getCryptoCurrencies"))
+        .then(async res => {
+            let data = await res.json();
             for(let d in data){
                 this.state.cryptoOptions.push(data[d]);
             }

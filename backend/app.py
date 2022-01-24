@@ -47,7 +47,7 @@ class CryptoAccount(db.Model):
     cryptoCurrency = db.relationship(
         "CryptoCurrencyAccount",
         backref="cryptoaccount"
-    ) 
+    )
     userId = db.Column(db.Integer, db.ForeignKey("iuser.id"))
     def _init_(
             self,id,accountBalance,userId

@@ -27,7 +27,7 @@
   grid-auto-rows: 100px;
   grid-template-areas:
     "a a b b b b c c c"
-    "a a b b b b c c c"
+    "d d b b b b c c c"
     "d d b b b b c c c"
     "d d b b b b c c c"
     "d d b b b b e e e"

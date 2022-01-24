@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { sha256 } from 'js-sha256';
 import React, {Component} from 'react';
 import { getViewUrl } from '../../Config';

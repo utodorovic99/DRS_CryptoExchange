@@ -61,12 +61,10 @@ export class Profile extends Component{
     onLogin(){
         this.state.hidden = loginStore.getState().userJson != null ? false : true;
         this.state.userJson = JSON.parse(loginStore.getState().userJson);
-        console.log(loginStore.getState().userJson);        
         this.setState(this.state);
     }
 
     onChangeInput(e){
-        console.log(e.target.name);
         this.state.userJson[e.target.name] = e.target.value;
         this.setState(this.state);
     }
@@ -119,15 +117,13 @@ export class Profile extends Component{
             }
         }
 
-        console.log(this.state.userJson);
-
         let accountBalanceDiv = <div></div>;
 
         if(this.state.userJson){
             accountBalanceDiv = <div>
                 <label>Current balance[$]:</label>
                 <input disabled={true} type="number" 
-                    value={this.state.userJson.cryptoAccountId.accountBalance}
+                    value={Number(this.state.userJson.cryptoAccountId.accountBalance).toFixed(2)}
                     style={{
                         textAlign:'center'
                     }}

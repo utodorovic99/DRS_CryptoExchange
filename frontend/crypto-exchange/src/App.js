@@ -6,7 +6,7 @@ import { CryptoTable } from './Components/Crypto/CryptoTable';
 import { SendCurrency } from './Components/Transactions/SendCurrency';
 import { Exchange } from './Components/Transactions/Exhange';
 import { Payment } from './Components/Transactions/Payment';
-// import { Transactions } from './Components/Transactions/Transactions';
+import { Transactions } from './Components/Transactions/Transactions';
 
 function App() {
   return (
@@ -35,9 +35,9 @@ function App() {
           <div className='item5App'>
             <Exchange></Exchange>
           </div>
-          {/* <div className='item6App'>
+          <div className='item6App'>
             <Transactions></Transactions>
-          </div> */}
+          </div>
         </div>
       </header>
     </div>

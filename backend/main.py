@@ -1,5 +1,4 @@
 from numbers import Number
-from random import randint
 from flask import Flask, request, Response, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from markupsafe import re
@@ -11,10 +10,12 @@ from serializer import *
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import enum
+from random import randint
 from multiprocessing import Process, Queue
 import _thread
 from Crypto.Hash import keccak
 from time import sleep
+
 @app.route("/getCryptoCurrencies", methods=['GET'])
 def GetAllCurrencies():
     def myFunc(e):
@@ -27,7 +28,19 @@ def GetAllCurrencies():
     results.sort(key=myFunc)
     return jsonify(results)
 
+@app.route('/checkBalance',methods=['GET'])
+def CheckBalance():
+    body = json.loads(request.data.decode('utf-8'))
+    email = body["email"]
 
+    iuser = IUser.query.filter_by(email=email).first()
+    if iuser is None:
+        return jsonify({"error": "User with that email or password doesn't exist!"}),404
+
+    jsonObject = UserJson()
+    userr  =  jsonObject.dump(iuser)
+
+    return jsonify(userr),200
 
 @app.route("/updateCryptoCurrency", methods=['GET'])
 def getCryptoData():
@@ -77,6 +90,7 @@ def getCryptoData():
     return jsonify(results)
 
 
+
 @app.route('/')
 def hello():
     return jsonify({"as": "asdasd"})
@@ -111,6 +125,15 @@ def registerUser():
 
     return Response(status=200)
 
+@app.route('/getuser', methods=['GET'])
+def GetUser():
+    userId = int(request.args.get('id'))
+    user = IUser.query.filter_by(id= userId).first()
+    jsonObject = UserJson()
+    userr  =  jsonObject.dump(user)
+    
+    return jsonify(userr)
+
 @app.route('/login',methods=['POST'])
 def LogIn():
     body = json.loads(request.data.decode('utf-8'))
@@ -121,34 +144,26 @@ def LogIn():
     IUser.password.like(password)).first()
     if iuser is None:
         return jsonify({"error": "User with that email or password doesn't exist!"}),404
+    if iuser.verified == False:
+        return jsonify({"error": "User not verified"}),404
     jsonObject = UserJson()
     userr  =  jsonObject.dump(iuser)
 
-    return jsonify(userr),200
-
-
-@app.route('/checkBalance',methods=['GET'])
-def CheckBalance():
-    body = json.loads(request.data.decode('utf-8'))
-    email = body["email"]
-   
-    iuser = IUser.query.filter_by(email=email).first()
-    if iuser is None:
-        return jsonify({"error": "User with that email or password doesn't exist!"}),404
-        
-    jsonObject = UserJson()
-    userr  =  jsonObject.dump(iuser)
+    # for i in range(len(iuser.)):
+    #     trName = transactions[i].cryptoCurrencyId
+    #     cur = CryptoCurrency.query.filter_by(cryptoName=trName).first()
+    #     curJson = CryptoCurrencyJson()
+    #     temp = curJson.dump(cur)
+    #     results[i]['cryptoCurrencyId'] = temp
 
     return jsonify(userr),200
-
-
 
 @app.route('/payment', methods =['POST'])
 def CreditCardPayment():
     body = json.loads(request.data.decode('utf-8'))
 
     email = body["email"]
-    amount = body["amount"]
+    amount = float(body["amount"])
     
     iuser = IUser.query.filter_by(email = email).first()
     if iuser.verified == False:
@@ -199,11 +214,17 @@ def BuyCrypto():
 
     db.session.commit()
     
-    cryptoCurrencyAccount = CryptoCurrencyAccount()
-    cryptoCurrencyAccount.cryptoBalance = cryptoAmount
-    cryptoCurrencyAccount.cryptoAccountId = iuser.cryptoAccountId.id
-    cryptoCurrencyAccount.cryptoCurrencyId = cryptoCurrency
-    db.session.add(cryptoCurrencyAccount)
+    cryptoCurrencyAccount = CryptoCurrencyAccount.query.filter_by(cryptoCurrencyId = cryptoCurrency ).first()
+    if(cryptoCurrencyAccount == None):
+        # ne postoji
+        cryptoCurrencyAccount = CryptoCurrencyAccount()
+        cryptoCurrencyAccount.cryptoBalance = cryptoAmount
+        cryptoCurrencyAccount.cryptoAccountId = iuser.cryptoAccountId.id
+        cryptoCurrencyAccount.cryptoCurrencyId = cryptoCurrency
+        db.session.add(cryptoCurrencyAccount)
+    else:
+        cryptoCurrencyAccount.cryptoBalance += cryptoAmount
+
     db.session.commit()
 
     jsonObject = UserJson()
@@ -212,7 +233,6 @@ def BuyCrypto():
 
 @app.route("/getTransactions", methods=['GET'])
 def getTransactionUser():
-
     userId = int(request.args.get('id'))
     transactions = Transaction.query.all() 
     
@@ -229,23 +249,19 @@ def getTransactionUser():
         curJson = CryptoCurrencyJson()
         temp = curJson.dump(cur)
         results[i]['cryptoCurrencyId'] = temp
-        
+
     return jsonify(results),200
 
 @app.route("/doTransaction", methods= ['POST'])
 def StartTransaction():
     body = json.loads(request.data.decode('utf-8'))
-    
+
+    hashStr = body['hashStr']
     emailFrom = body['emailFrom']
     emailTo = body['emailTo']
     amount = body['amount']
-
-    rndint = randint(1,1389)
-    k = keccak.new(digest_bits=256)
-    stringToHash = emailFrom+emailTo+str(amount)+str(rndint)
-    k.update(stringToHash.encode('utf-8'))
-
     state = 'PROCESSING'
+    
     cryptoCurrencyId1 = body['cryptoName']
     userfromid = body['userfromid']
     #naci drugog po mejlu
@@ -263,7 +279,7 @@ def StartTransaction():
         for ccc in cryptoCurrencyAccount2:
             if ( ccc.cryptoAccountId==cryptoAcc.id ) and (ccc.cryptoCurrencyId==cryptoCurrencyId1):
                 objekat = ccc        
-        
+
         print(objekat)
         if objekat!=None:
             valid = True 
@@ -282,8 +298,8 @@ def StartTransaction():
 
     db.session.add(transaction)
     db.session.commit()
-    print(transaction)
-    
+
+
     jsonObject = TransactionJson()
     trJson  =  jsonObject.dump(transaction)
 
@@ -308,64 +324,64 @@ def Mining(q1,hashId,userFromId,userToId,amount,cryptoCurrencyId):
     sleep(2)
     cryptoAccountFrom = CryptoAccount.query.filter_by(userId=(userFromId)).first()
     cryptoAccountTo = CryptoAccount.query.filter_by(userId=(userToId)).first()
-    
 
 
-    
+
+
     print("SDADSASADDSASDADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-    
-    
+
+
     print(cryptoAccountFrom.accountBalance)
-    
+
     print(cryptoAccountTo.accountBalance)
     allcryptoAccounts = list(CryptoCurrencyAccount.query.all())
-    
+
     for alc in allcryptoAccounts:
         if (alc.cryptoCurrencyId==cryptoCurrencyId) and (alc.cryptoAccountId==cryptoAccountFrom.id):
             cryptoCurrencyAccFrom = alc
-    
+
     for alc in allcryptoAccounts:
         if (alc.cryptoCurrencyId==cryptoCurrencyId) and (alc.cryptoAccountId==cryptoAccountTo.id):
             cryptoCurrencyAccTo = alc
-    
-    
-    
+
+
+
     # CryptoCurrencyAccount.query.filter(
     #     CryptoCurrencyAccount.cryptoCurrencyId.like(cryptoCurrencyId),
     #     CryptoCurrencyAccount.cryptoAccountId.like(cryptoAccountFrom.id)
     # ).first()
     print("SDWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-    
+
     # print(cryptoCurrencyAccFrom.Id)
     # cryptoCurrencyAccTo = CryptoCurrencyAccount.query.filter(
     #     CryptoCurrencyAccount.cryptoCurrencyId.like(cryptoCurrencyId),
     #     CryptoCurrencyAccount.cryptoAccountId.like(cryptoAccountTo.id)
     # ).first()
     print("444444444444444444444444444444444444444444444444SSSSSSSSSSSSSSSSSS")
-    
+
     balance = cryptoCurrencyAccFrom.cryptoBalance
     balance = balance - (float(amount) + float(amount)*0.05)
-    
+
     cryptoCurrencyAccFrom.cryptoBalance= balance
     db.session.add(cryptoCurrencyAccFrom)
 
     db.session.commit()
 
     print("43245325535352342423423423423423424234342432423")
-    
+
     cryptoCurrencyAccTo.cryptoBalance+= float( amount)
-    
+
     db.session.add(cryptoCurrencyAccTo)
     db.session.commit()
 
     print("156151615156156151561556151615156165156161615615615444444444444444444444444444444444444444444444444SSSSSSSSSSSSSSSSSS")
-    
+
     transaction = Transaction.query.filter_by(hashID = hashId).first()
     transaction.state= 'PROCESSED'
     db.session.add(transaction)
     db.session.commit()
     print("ssssssssssssssssssssssssvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
-    
+
     q1.put("done")
 
 
@@ -386,9 +402,8 @@ def StartMining():
     process1 = Process(target= Mining, args = (q1,hashId,userFromId,userToId,float(amount),cryptoCurrencyId))
     process1.start()
     q2.get()
-   
-    return jsonify({"Status message":"obavljeno"}),200
 
+    return jsonify({"Status message":"obavljeno"}),200
 
 
 @app.route('/crypto/', methods=['POST','GET'])
