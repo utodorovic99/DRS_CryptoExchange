@@ -19,7 +19,8 @@ class TransactionJson(ma.Schema):
 class CryptoCurrencyAccountJson(ma.Schema):
     id = fields.Number()
     cryptoAccountId = fields.Number()
-    cryptoCurrencyId = fields.Nested(CryptoCurrencyJson)
+    cryptoCurrencyId = fields.String()
+    cryptoBalance = fields.Float()
 
 class CryptoAccountJson(ma.Schema):
     id = fields.Number()
