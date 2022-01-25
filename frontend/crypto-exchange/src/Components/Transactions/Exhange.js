@@ -78,29 +78,37 @@ export class Exchange extends Component{
         let dollarAmount = cryptoAmount * Number(exRate);
         let cryptoName = this.state.formData.cryptoName.value;
 
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: JSON.parse(sessionStorage.getItem('userJson')).email,
-                amountDollars: Number(this.state.formData.amount.value) * Number(exRate),
-                cryptoCurrency: this.state.formData.cryptoName.value,
-                cryptoAmount: Number(this.state.formData.amount.value)
-            })
-        };
+        let userBalance = Number(JSON.parse(sessionStorage.getItem('userJson')).cryptoAccountId.accountBalance);
 
-        fetch(getViewUrl('buyNewCrypto'), requestOptions)
-        .then(async res => {
-            if(!res.ok) throw new Error("error while exchanging.");
-            let resJson = await res.json();
-            
-            sessionStorage.setItem('userJson', JSON.stringify(resJson));
-            loginStore.dispatch({
-                type: USER_LOGGED,
-                userJson: JSON.stringify(resJson)
-            });
-        })
-        .catch(err => alert(err))
+        if(dollarAmount <= userBalance){
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: JSON.parse(sessionStorage.getItem('userJson')).email,
+                    amountDollars: Number(this.state.formData.amount.value) * Number(exRate),
+                    cryptoCurrency: this.state.formData.cryptoName.value,
+                    cryptoAmount: Number(this.state.formData.amount.value)
+                })
+            };
+    
+            fetch(getViewUrl('buyNewCrypto'), requestOptions)
+            .then(async res => {
+                if(!res.ok) throw new Error("error while exchanging.");
+                let resJson = await res.json();
+                
+                sessionStorage.setItem('userJson', JSON.stringify(resJson));
+                loginStore.dispatch({
+                    type: USER_LOGGED,
+                    userJson: JSON.stringify(resJson)
+                });
+            })
+            .catch(err => alert(err))
+        }
+        else {
+            alert("Insufficient funds.")
+        }
+        
     }
 
     render(){
@@ -114,7 +122,7 @@ export class Exchange extends Component{
         }
 
         return <div hidden={this.state.hidden} className='transtactionDiv'>
-            <label>Exchange currency:</label>
+            <label>Buy currency:</label>
             <br/>
             <label>Currency:</label>
             <select disabled={false} onClick={this.onCurrencySelectChanged}>

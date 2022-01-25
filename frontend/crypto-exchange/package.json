@@ -2,7 +2,6 @@
   "name": "crypto-exchange",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://api:5000",
   "dependencies": {
     "@material-ui/core": "^4.12.3",
     "@testing-library/jest-dom": "^5.16.1",

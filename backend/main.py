@@ -16,6 +16,16 @@ import _thread
 from Crypto.Hash import keccak
 from time import sleep
 
+@app.route('/getUserCryptos', methods=['GET'])
+def GetUserCryptos():
+    userId = int(request.args.get('id'))
+    cryptoAccountId = CryptoAccount.query.filter_by(userId=userId).first()
+    cryptoCurrencyAccounts = list(CryptoCurrencyAccount.query.filter_by(cryptoAccountId=cryptoAccountId.id).all())
+    ccaJson = CryptoCurrencyAccountJson(many=True)
+    retJson = ccaJson.dump(cryptoCurrencyAccounts)
+
+    return jsonify(retJson),200
+
 @app.route("/getCryptoCurrencies", methods=['GET'])
 def GetAllCurrencies():
     def myFunc(e):
@@ -156,13 +166,6 @@ def LogIn():
     iuser.cryptoAccountId.cryptoCurrency = obj
     
     userr  =  jsonObject.dump(iuser)
-
-    # for i in range(len(iuser.)):
-    #     trName = transactions[i].cryptoCurrencyId
-    #     cur = CryptoCurrency.query.filter_by(cryptoName=trName).first()
-    #     curJson = CryptoCurrencyJson()
-    #     temp = curJson.dump(cur)
-    #     results[i]['cryptoCurrencyId'] = temp
 
     return jsonify(userr),200
 
@@ -328,7 +331,6 @@ def getTransactionUser():
 def StartTransaction():
     body = json.loads(request.data.decode('utf-8'))
 
-    hashStr = body['hashStr']
     emailFrom = body['emailFrom']
     emailTo = body['emailTo']
     amount = body['amount']
@@ -343,34 +345,32 @@ def StartTransaction():
     userfromid = body['userfromid']
     #naci drugog po mejlu
     valid = False
-    idUserTo = (IUser.query.filter_by(email = body['emailTo']).first())
-    if idUserTo== None :
+    userTo = (IUser.query.filter_by(email = body['emailTo']).first())
+    userToid = userfromid
+
+    if userTo== None :
         state = 'DECLINED'
-        idUserTo = userfromid
     else:   
-        cryptoAcc = CryptoAccount.query.filter_by(userId = idUserTo.id).first()
-        print(cryptoAcc.id)
-        print(cryptoCurrencyId1)
+        cryptoAcc = CryptoAccount.query.filter_by(userId = userTo.id).first()
         cryptoCurrencyAccount2 = list(CryptoCurrencyAccount.query.all())
         objekat = None
         for ccc in cryptoCurrencyAccount2:
             if ( ccc.cryptoAccountId==cryptoAcc.id ) and (ccc.cryptoCurrencyId==cryptoCurrencyId1):
                 objekat = ccc        
 
-        print(objekat)
+        userToid = userTo.id
+
         if objekat!=None:
-            valid = True 
-            idUserTo = idUserTo.id
+            valid = True            
         else:
             state = 'DECLINED'
-            idUserTo = userfromid
 
     transaction =  Transaction()
     transaction.amount = float(body['amount'])
     transaction.hashID = str(k.hexdigest())
     transaction.state= state 
     transaction.userfromid = int(userfromid)
-    transaction.usertoid = int(idUserTo)
+    transaction.usertoid = int(userToid)
     transaction.cryptoCurrencyId = cryptoCurrencyId1 #CryptoCurrency.query.filter_by(cryptoName= cryptoCurrencyId).first()
 
     db.session.add(transaction)
@@ -386,10 +386,10 @@ def StartTransaction():
     trJson['cryptoCurrencyId'] = temp
 
 
-    if valid == True:
-        return jsonify(trJson),200
-    else:
-        return jsonify({"Status message":"Ne postoji onaj kome saljes"}),404
+    # if valid == True:
+    return jsonify(trJson),200
+    # else:
+        # return jsonify({"Status message":"Ne postoji onaj kome saljes"}),404
 
 
 def announce(q1,q2):
@@ -398,7 +398,7 @@ def announce(q1,q2):
 
 def Mining(q1,hashId,userFromId,userToId,amount,cryptoCurrencyId):
 
-    sleep(2)
+    sleep(10)
     cryptoAccountFrom = CryptoAccount.query.filter_by(userId=(userFromId)).first()
     cryptoAccountTo = CryptoAccount.query.filter_by(userId=(userToId)).first()
 
@@ -442,7 +442,7 @@ def StartMining():
 
     body = json.loads(request.data.decode('utf-8'))
 
-    hashId = body['hashId']
+    hashId = body['hashID']
     amount = body['amount']
     userFromId = body['userFromId']
     userToId = body['userToId']
