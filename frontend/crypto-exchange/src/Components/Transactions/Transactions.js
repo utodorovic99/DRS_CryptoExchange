@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import { getViewUrl } from '../../Config';
 import { loginStore, NO_USER_LOGGED } from '../Profile/LoginStore';
 import './Transactions.css';
+import { updateTableStore } from './UpdateTableStore';
 
 function compareTransactionByField(a, b, field, asc){
     if(a[field] < b[field]) return asc ? -1 : 1;
@@ -30,11 +31,13 @@ export class Transactions extends Component{
 
     componentDidMount(){
         this.unsubLogin = loginStore.subscribe(this.onLoginShow);
+        this.unsubUpdateTable = updateTableStore.subscribe(this.fillTransactions);
         this.fillTransactions();
     }
 
     componentWillUnmount(){
         this.unsubLogin();
+        this.unsubUpdateTable();
     }
 
     onLoginShow(){

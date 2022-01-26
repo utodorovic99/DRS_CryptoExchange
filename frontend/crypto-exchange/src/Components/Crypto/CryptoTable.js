@@ -101,11 +101,13 @@ export class CryptoTable extends Component{
                     display:'grid',
                     gridTemplateAreas: 'a b'
                 }}>
-                    <img src={upArrowPic} width='50px' height='30px' style={{
+                    <img src={upArrowPic} width='50px' height='30px' alt='up'
+                    style={{
                         gridArea:'a',
                         paddingRight: '200px'
                     }} onClick={this.onClickUp}/>
-                    <img src={downArrowPic} width='50px' height='30px' style={{
+                    <img src={downArrowPic} width='50px' height='30px' alt='down'
+                    style={{
                         gridArea:'a',
                         paddingLeft: '200px'
                     }} onClick={this.onClickUp}/>
@@ -128,11 +130,13 @@ export class CryptoTable extends Component{
                 display:'grid',
                 gridTemplateAreas: 'a b'
             }}>
-                <img src={leftArrowPic} width='50px' height='30px' style={{
+                <img src={leftArrowPic} width='50px' height='30px' alt='left'
+                style={{
                     gridArea:'a',
                     paddingRight: '200px'
                 }} onClick={this.onClickLeft}/>
-                <img src={rightArrowPic} width='50px' height='30px' style={{
+                <img src={rightArrowPic} width='50px' height='30px' alt='right'
+                style={{
                     gridArea:'a',
                     paddingLeft: '200px'
                 }} onClick={this.onClickRight}/>
