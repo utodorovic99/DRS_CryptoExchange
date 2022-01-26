@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a25396c1223d
+Revision ID: f65a49cff1d7
 Revises: 
-Create Date: 2022-01-20 17:17:51.082229
+Create Date: 2022-01-25 15:54:14.210630
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a25396c1223d'
+revision = 'f65a49cff1d7'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,19 +26,21 @@ def upgrade():
     sa.UniqueConstraint('cryptoName')
     )
     op.create_table('iuser',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('firstName', sa.String(length=30), nullable=True),
     sa.Column('lastName', sa.String(length=30), nullable=True),
     sa.Column('address', sa.String(length=50), nullable=True),
+    sa.Column('email', sa.String(length=50), nullable=True),
     sa.Column('city', sa.String(length=50), nullable=True),
     sa.Column('country', sa.String(length=60), nullable=True),
-    sa.Column('phoneNumber', sa.Integer(), nullable=True),
+    sa.Column('phoneNumber', sa.BigInteger(), nullable=True),
     sa.Column('password', sa.String(length=65), nullable=True),
     sa.Column('verified', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('cryptoaccount',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('accountBalance', sa.Float(), nullable=True),
     sa.Column('userId', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['userId'], ['iuser.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -57,6 +59,7 @@ def upgrade():
     )
     op.create_table('cryptocurrencyaccount',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('cryptoBalance', sa.Float(), nullable=True),
     sa.Column('cryptoAccountId', sa.Integer(), nullable=True),
     sa.Column('cryptoCurrencyId', sa.String(length=10), nullable=True),
     sa.ForeignKeyConstraint(['cryptoAccountId'], ['cryptoaccount.id'], ),

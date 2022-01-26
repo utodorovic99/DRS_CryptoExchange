@@ -1,12 +1,14 @@
-from numbers import Number
+
 from flask import Flask, request, Response, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from markupsafe import re
 import sqlalchemy
 from config import db, ma, Config, SQLAlchemy
+from cryptomodels import *
+from usermodels import *
 from app import *
 import json
-from serializer import *
+from serializer import CryptoCurrencyAccountJson,CryptoCurrencyJson
+from serializer2 import *
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import enum
@@ -15,6 +17,30 @@ from multiprocessing import Process, Queue
 import _thread
 from Crypto.Hash import keccak
 from time import sleep
+from cryptomodels import db as crypto_db
+from cryptomodels import *
+from usermodels import db as user_db
+@app.route('/getUserCryptos', methods=['GET'])
+def GetUserCryptos():
+    userId = int(request.args.get('id'))
+    cryptoAccountId = CryptoAccount.query.filter_by(userId=userId).first()
+    cryptoCurrencyAccounts = (CryptoCurrencyAccount.query.filter_by(cryptoAccountId=cryptoAccountId.id).all())
+    ccaJson = CryptoCurrencyAccountJson(many=True)
+    ccaJson.dump(cryptoCurrencyAccounts)
+
+    print(ccaJson)
+
+    return jsonify(ccaJson),200
+
+@app.route('/getUserCryptos', methods=['GET'])
+def GetUserCryptos():
+    userId = int(request.args.get('id'))
+    cryptoAccountId = CryptoAccount.query.filter_by(userId=userId).first()
+    cryptoCurrencyAccounts = list(CryptoCurrencyAccount.query.filter_by(cryptoAccountId=cryptoAccountId.id).all())
+    ccaJson = CryptoCurrencyAccountJson(many=True)
+    retJson = ccaJson.dump(cryptoCurrencyAccounts)
+
+    return jsonify(retJson),200
 
 @app.route('/getUserCryptos', methods=['GET'])
 def GetUserCryptos():
@@ -57,7 +83,7 @@ def getCryptoData():
     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
     parameters = {
     'start':'1',
-    'limit':'5000',
+    'limit':'100',
     'convert':'USD'
     }
     headers = {
@@ -76,18 +102,35 @@ def getCryptoData():
      data = json.loads(response.text)
         # print(data)
 
-     for d in data['data']:
-      try:
-        
-        # cryptoCurr = CryptoCurrency(d['symbol'],d['quote']['USD']['price'])
-        cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
-        # db.session.add(cryptoCurr)
-        # db.session.
-        cryptoCurr.exchangeRate =d['quote']['USD']['price']
-        db.session.commit()
-        
-      except Exception:
-            continue
+
+     cryptoName = data['data'][0]['symbol']
+     print(cryptoName)
+     if(CryptoCurrency.query.filter_by(cryptoName=cryptoName).first() is None):
+          for d in data['data']:
+            try:
+                
+                cryptoCurr = CryptoCurrency(d['symbol'],d['quote']['USD']['price'])
+                # cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
+                db.session.add(cryptoCurr)
+                # db.session.
+                # cryptoCurr.exchangeRate =d['quote']['USD']['price']
+                db.session.commit()
+                
+            except Exception:
+                    continue
+     else:
+        for d in data['data']:
+            try:
+                
+                # cryptoCurr = CryptoCurrency(d['symbol'],d['quote']['USD']['price'])
+                cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
+                # db.session.add(cryptoCurr)
+                # db.session.
+                cryptoCurr.exchangeRate =d['quote']['USD']['price']
+                db.session.commit()
+                
+            except Exception:
+                    continue
     
     except (ConnectionError, Timeout, TooManyRedirects) as e:
         print(e)
@@ -100,10 +143,6 @@ def getCryptoData():
     return jsonify(results)
 
 
-
-@app.route('/')
-def hello():
-    return jsonify({"as": "asdasd"})
 
 @app.route("/registerUser", methods=['POST'])
 def registerUser():
@@ -487,8 +526,5 @@ def crypto_currency():
         return {"count": len(results), "crypto ": results}
 
 if __name__ == '__main__':
-    # app.app_context().push()
-    # db.init_app(app)
-    # db.create_all()
     app.run(debug=True)
-    #getCryptoData()
+    
