@@ -21,17 +21,6 @@ from cryptomodels import db as crypto_db
 from cryptomodels import *
 from usermodels import db as user_db
 
-
-@app.route('/getUserCryptos', methods=['GET'])
-def GetUserCryptos():
-    userId = int(request.args.get('id'))
-    cryptoAccountId = CryptoAccount.query.filter_by(userId=userId).first()
-    cryptoCurrencyAccounts = list(CryptoCurrencyAccount.query.filter_by(cryptoAccountId=cryptoAccountId.id).all())
-    ccaJson = CryptoCurrencyAccountJson(many=True)
-    retJson = ccaJson.dump(cryptoCurrencyAccounts)
-
-    return jsonify(retJson),200
-
 @app.route('/getUserCryptos', methods=['GET'])
 def GetUserCryptos():
     userId = int(request.args.get('id'))

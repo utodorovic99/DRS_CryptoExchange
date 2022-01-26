@@ -50,6 +50,14 @@ export class Payment extends Component{
 
     componentDidMount(){
         this.unsubLogin = loginStore.subscribe(this.onLoginShow);
+
+        this.state.hidden = loginStore.getState().type === NO_USER_LOGGED;
+        if(!this.state.hidden){
+            this.state.paymentVerified = JSON.parse(loginStore.getState().userJson).verified; 
+            if(!Boolean(this.state.paymentVerified)){
+                this.state.formData.amount = 1;
+            }
+        }
     }
 
     componentWillUnmount(){
@@ -61,7 +69,7 @@ export class Payment extends Component{
         if(!this.state.hidden){
             this.state.paymentVerified = JSON.parse(loginStore.getState().userJson).verified; 
             if(!Boolean(this.state.paymentVerified)){
-                this.state.formData.amount = 1;
+                this.state.formData.amount.value = '1';
             }
         }
         
@@ -70,8 +78,7 @@ export class Payment extends Component{
 
     onInputChange(e){
         this.state.formData[e.target.name].value = e.target.value;
-        this.state.formData[e.target.name].color = 
-        this.state.formData[e.target.name].value == '' ? 'red' : 'black';
+        this.state.formData[e.target.name].color = this.state.formData[e.target.name].value == '' ? 'red' : 'black';
         this.setState(this.state); 
     }
 
@@ -85,6 +92,8 @@ export class Payment extends Component{
 
     onBuy(){
         if(this.validInput()){
+            
+
             const body = {
                 email : JSON.parse(sessionStorage.getItem('userJson')).email,
                 amount: this.state.formData.amount.value
@@ -135,8 +144,7 @@ export class Payment extends Component{
             <input 
                 type='number' placeholder='Amount:' disabled={!this.state.paymentVerified}
                 value={
-                    this.state.paymentVerified ?
-                    this.state.formData.amount.value : 1}
+                    this.state.formData.amount.value}
                 name="amount"
                 style={{
                     color: this.state.formData.amount.color

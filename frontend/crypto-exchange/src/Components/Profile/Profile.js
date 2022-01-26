@@ -53,6 +53,12 @@ export class Profile extends Component{
 
     componentDidMount(){
         this.unsubscribeLogin = loginStore.subscribe(this.onLogin);
+    
+        if(!this.state.hidden){
+            this.state.userJson = JSON.parse(sessionStorage.getItem('userJson'));
+            this.prevPassword = this.state.userJson.password;
+            this.state.userJson.password = '';    
+        }
     }
 
     componentWillUnmount(){
@@ -77,7 +83,6 @@ export class Profile extends Component{
     }
 
     onChangeInput(e){
-        console.log(this.state.userJson[e.target.name]);
         this.state.userJson[e.target.name] = e.target.value;
         e.target.style["border-color"] = e.target.value == '' ? 'red' : 'black';
         this.setState(this.state);
@@ -106,7 +111,6 @@ export class Profile extends Component{
             this.state.userJson.password = this.prevPassword;
         }
         else {
-
             this.state.userJson.password = sha256(this.state.userJson.password);
         }
 

@@ -129,7 +129,6 @@ export class Exchange extends Component{
 
     onSelectChange(e){
         this.state.currencies[e.target.name] = e.target.value;
-        console.log(this.state.currencies[e.target.name]);
         this.setState(this.state);
     }
 

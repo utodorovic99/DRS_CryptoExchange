@@ -80,11 +80,6 @@ export class SendCurrency extends Component{
         this.setState(this.state);
     }
 
-    onCurrencySelect(e){
-        this.state.selectedCurrency = e.target.value;
-        console.log(this.state.selectedCurrency);
-        this.setState(this.state);
-    }
 
     validInput(){
         return this.state.selectedCurrency == '' &&
@@ -98,7 +93,6 @@ export class SendCurrency extends Component{
             return;
         }
 
-
         let userJson = JSON.parse(sessionStorage.getItem('userJson'));
         
         if(userJson){
@@ -150,7 +144,6 @@ export class SendCurrency extends Component{
                         .then(async res => {
                             if(!res.ok) throw Error(await res.json())
                             updateTableStore.dispatch(initUpdateTableState);
-                            console.log(await res.json());
                         })
                         .catch(err => alert(err));
                     }
@@ -166,87 +159,11 @@ export class SendCurrency extends Component{
                 alert("You don't have that currency.");
             }
         }
-    }
-
-    onInputChange(e){
-        this.state[e.target.name] = e.target.value;
-        this.setState(this.state);
     }
 
     onCurrencySelect(e){
         this.state.selectedCurrency = e.target.value;
-        console.log(this.state.selectedCurrency);
         this.setState(this.state);
-    }
-
-    onSendCurrency(){
-        let userJson = JSON.parse(sessionStorage.getItem('userJson'));
-        
-        if(userJson){
-            let userCurrencies = userJson.cryptoAccountId.cryptoCurrency;
-            let selectedCurrency = userCurrencies.filter(c => c.cryptoCurrencyId == this.state.selectedCurrency);
-            if(selectedCurrency.length != 0){
-                let userAmountCurrency = Number(selectedCurrency[0].cryptoBalance);
-                let selectedAmount = Number(this.state.amount);
-                
-                if(userAmountCurrency < selectedAmount){
-                    alert('Insufficient funds.');
-                    return;
-                }
-    
-                const requestStartTransaction = {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        emailFrom: userJson.email,
-                        emailTo: this.state.email,
-                        amount: selectedAmount,
-                        cryptoName: this.state.selectedCurrency,
-                        userfromid: Number(userJson.id)
-                    })
-                };
-
-                fetch(getViewUrl('doTransaction'), requestStartTransaction)
-                .then(async res => {
-                    if(!res.ok) throw Error(JSON.stringify(await res.json()));
-
-                    let transactionJson = await res.json(); 
-
-                    updateTableStore.dispatch(initUpdateTableState);
-
-                    if(transactionJson.state != 'DECLINED'){
-                        const requestStartMining = {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                hashID: transactionJson.hashID,
-                                amount: Number(selectedAmount),
-                                userFromId: Number(transactionJson.userfromid),
-                                userToId: Number(transactionJson.usertoid),
-                                cryptoCurrencyId: this.state.selectedCurrency
-                            })
-                        };
-
-                        fetch(getViewUrl('startMining'), requestStartMining)
-                        .then(async res => {
-                            if(!res.ok) throw Error(await res.json())
-                            updateTableStore.dispatch(initUpdateTableState);
-                            console.log(await res.json());
-                        })
-                        .catch(err => alert(err));
-                    }
-                    else {
-                        alert('Transaction failed. ' + `${this.state.email} doesn't have account for ${this.state.selectedCurrency}`);
-                    }
-
-                })
-                .catch(err => alert(err));
-    
-            }
-            else {
-                alert("You don't have that currency.");
-            }
-        }
     }
 
     onInputChange(e){
