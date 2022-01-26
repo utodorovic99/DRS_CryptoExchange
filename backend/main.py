@@ -1,11 +1,12 @@
 
 from flask import Flask, request, Response, jsonify
-from markupsafe import re
 import sqlalchemy
-from config import db, ma, Config, SQLAlchemy
+from flask_cors import CORS
+from config import db, ma, Config, mysql
+from cryptomodels import db as crypto_db
 from cryptomodels import *
-from usermodels import *
-from app import *
+from usermodels import db as user_db
+from usermodels import * 
 import json
 from serializer import CryptoCurrencyAccountJson,CryptoCurrencyJson
 from serializer2 import *
@@ -17,9 +18,20 @@ from multiprocessing import Process, Queue
 import _thread
 from Crypto.Hash import keccak
 from time import sleep
-from cryptomodels import db as crypto_db
-from cryptomodels import *
-from usermodels import db as user_db
+
+
+
+app = Flask(__name__)
+app.config.from_object(Config)
+CORS(app, supports_credentials=False)
+
+mysql.init_app(app)
+db.init_app(app)
+
+user_db.init_app(app)
+crypto_db.init_app(app)
+ma.init_app(app)
+
 
 @app.route('/getUserCryptos', methods=['GET'])
 def GetUserCryptos():
@@ -36,12 +48,18 @@ def GetAllCurrencies():
     def myFunc(e):
         return e['id']
 
+ 
     allCryptos  = CryptoCurrency.query.all()
     cryptos = list(allCryptos)
+    cryptos.sort(key=myFunc)
+   
     jsonobject = CryptoCurrencyJson(many=True)
+    
+      
     results = jsonobject.dump(cryptos)
-    results.sort(key=myFunc)
-    return jsonify(results)
+    
+    return jsonify(results),200
+   
 
 @app.route('/checkBalance',methods=['GET'])
 def CheckBalance():
@@ -56,6 +74,14 @@ def CheckBalance():
     userr  =  jsonObject.dump(iuser)
 
     return jsonify(userr),200
+
+
+# @app.route("/create")
+# def create():
+    
+#     db.create_all()
+#     db.session.commit()
+#     return "All tables created"
 
 @app.route("/updateCryptoCurrency", methods=['GET'])
 def getCryptoData():
@@ -74,42 +100,54 @@ def getCryptoData():
     session.headers.update(headers)
         
     def myFunc(e):
-     return e['id']
+        return e['id']
+
+    db.session.rollback()
 
     try:
-     response = session.get(url, params=parameters)
-     data = json.loads(response.text)
-        # print(data)
+        response = session.get(url, params=parameters)
+        data = json.loads(response.text)
+        # for d in data['data']:
+        #     print(d['symbol'])
+        #     print(d['quote']['USD']['price'])
 
-
-     cryptoName = data['data'][0]['symbol']
-     print(cryptoName)
-     if(CryptoCurrency.query.filter_by(cryptoName=cryptoName).first() is None):
-          for d in data['data']:
-            try:
-                
-                cryptoCurr = CryptoCurrency(d['symbol'],d['quote']['USD']['price'])
-                # cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
-                db.session.add(cryptoCurr)
-                # db.session.
-                # cryptoCurr.exchangeRate =d['quote']['USD']['price']
-                db.session.commit()
-                
-            except Exception:
-                    continue
-     else:
+        # cryptoName = data['data'][0]['symbol']
+        # print(cryptoName)
+        # if(CryptoCurrency.query.filter_by(cryptoName=cryptoName).first() is None):
         for d in data['data']:
             try:
-                
-                # cryptoCurr = CryptoCurrency(d['symbol'],d['quote']['USD']['price'])
-                cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
-                # db.session.add(cryptoCurr)
+                tempcc=CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
+                print(d['symbol'])
+                if tempcc is None:
+                    cryptoCurr = CryptoCurrency(str(d['symbol']), float(d['quote']['USD']['price']))
+                    # cryptoCurr.cryptoName = str(d['symbol'])
+                    print(cryptoCurr.cryptoName)
+                # cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
+                    db.session.add(cryptoCurr)
                 # db.session.
-                cryptoCurr.exchangeRate =d['quote']['USD']['price']
-                db.session.commit()
+                # cryptoCurr.exchangeRate =d['quote']['USD']['price']
+                else:
+                    tempcc.exchangeRate=d['quote']['USD']['price']
+            except Exception as e:
+                print(e)
+                break
+
+    
+        db.session.commit()
+        
+        # else:
+        #     for d in data['data']:
+        #         try:
                 
-            except Exception:
-                    continue
+        #             # cryptoCurr = CryptoCurrency(d['symbol'],d['quote']['USD']['price'])
+        #             cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
+        #             # db.session.add(cryptoCurr)
+        #             # db.session.
+        #             cryptoCurr.exchangeRate =d['quote']['USD']['price']
+        #             db.session.commit()
+                
+        #         except Exception:
+        #             continue
     
     except (ConnectionError, Timeout, TooManyRedirects) as e:
         print(e)
@@ -118,7 +156,7 @@ def getCryptoData():
     jsonobject = CryptoCurrencyJson(many=True)
     results = jsonobject.dump(cryptos)
     
-    results.sort(key=myFunc)
+    # results.sort(key=myFunc)
     return jsonify(results)
 
 
@@ -319,13 +357,6 @@ def ExchangeCrypto():
     return jsonify(userr),200
 
 
-    
-
-
-    
-
-
-
 @app.route("/getTransactions", methods=['GET'])
 def getTransactionUser():
     userId = int(request.args.get('id'))
@@ -502,5 +533,5 @@ def crypto_currency():
         return {"count": len(results), "crypto ": results}
 
 if __name__ == '__main__':
-    app.run(debug=True)
     
+    app.run(debug=True)

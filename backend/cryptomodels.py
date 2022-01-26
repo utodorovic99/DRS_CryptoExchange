@@ -1,11 +1,11 @@
 
-from config import db, ma, Config
+from config import db
 from usermodels import *
 
 class CryptoCurrency(db.Model):
     __tablename__="cryptocurrency"
     id = db.Column(db.Integer, primary_key = True)
-    cryptoName = db.Column(db.String(10), unique = True)
+    cryptoName = db.Column(db.String(10))
     exchangeRate = db.Column(db.Float)
     def __init__(
             self, cryptoName, exchangeRate
