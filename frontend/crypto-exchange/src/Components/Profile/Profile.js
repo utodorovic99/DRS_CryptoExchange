@@ -3,6 +3,9 @@ import profilePic from './profile.png';
 import './Profile.css';
 import { loginStore, USER_LOGGED } from './LoginStore';
 import {getViewUrl} from '../../Config';
+import leftArrowPic from './../Crypto/left-arrow.png';
+import rightArrowPic from './../Crypto/right-arrow.png';
+import { sha256 } from 'js-sha256';
 
 function mapDbNameToUserInput(dbName){
     switch (dbName) {
@@ -33,6 +36,7 @@ export class Profile extends Component{
 
         this.state = {
             userJson : JSON.parse(sessionStorage.getItem('userJson')),
+            tableCnt: 0,
             hidden : props.hidden,
             hiddenInfo: true
         };
@@ -43,10 +47,12 @@ export class Profile extends Component{
         this.onLogin = this.onLogin.bind(this);
         this.onChangeInput = this.onChangeInput.bind(this);
         this.onSaveProfile = this.onSaveProfile.bind(this);
+        this.onArrowClick = this.onArrowClick.bind(this);
+        this.validInput = this.validInput.bind(this);
     }
 
     componentDidMount(){
-        this.unsubscribeLogin = loginStore.subscribe(this.onLogin)
+        this.unsubscribeLogin = loginStore.subscribe(this.onLogin);
     }
 
     componentWillUnmount(){
@@ -60,25 +66,55 @@ export class Profile extends Component{
 
     onLogin(){
         this.state.hidden = loginStore.getState().userJson != null ? false : true;
-        this.state.userJson = JSON.parse(loginStore.getState().userJson);
+        
+        if(!this.state.hidden){
+            this.state.userJson = JSON.parse(loginStore.getState().userJson);
+            this.prevPassword = this.state.userJson.password;
+            this.state.userJson.password = '';    
+        }
+
         this.setState(this.state);
     }
 
     onChangeInput(e){
+        console.log(this.state.userJson[e.target.name]);
         this.state.userJson[e.target.name] = e.target.value;
+        e.target.style["border-color"] = e.target.value == '' ? 'red' : 'black';
         this.setState(this.state);
     }
 
+    validInput(){
+        let notValidable = [
+            'cryptoAccountId', 'id', 'verified', 'password'
+        ];
+
+        for(let k in this.state.userJson){
+            if(this.state.userJson[k] == '' && !notValidable.includes(k)) 
+                return false;
+        }
+
+        return true;
+    }
+
     onSaveProfile(){
+        if(!this.validInput()){
+            alert("Please fill out required fields.");
+            return;
+        }
+
+        if(this.state.userJson.password == ''){
+            this.state.userJson.password = this.prevPassword;
+        }
+        else {
+
+            this.state.userJson.password = sha256(this.state.userJson.password);
+        }
+
         const requestOptions = {
             method : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(this.state.userJson)
         };
-
-        if(this.state.userJson.password == ''){
-            this.state.userJson.password = JSON.parse(sessionStorage.getItem('userJson')).password;
-        }
 
         fetch(getViewUrl('updateUser'), requestOptions)
         .then(res => {
@@ -87,6 +123,17 @@ export class Profile extends Component{
             sessionStorage.setItem('userJson', JSON.stringify(this.state.userJson));
         })
         .catch(err => alert(err));
+    }
+
+    onArrowClick(e){
+        if(e.target.name == 'left'){
+            this.state.tableCnt--;
+        }
+        else {
+            this.state.tableCnt++;
+        }
+        this.state.tableCnt %= this.state.userJson.cryptoAccountId.cryptoCurrency.length;
+        this.setState(this.state);
     }
 
     render(){
@@ -99,12 +146,11 @@ export class Profile extends Component{
                     <div>
                         <label>{mapDbNameToUserInput(k)}</label>
                             <input 
-                                type='text'
+                                type={k!='password' ? 'text' : 'password'}
                                 placeholder={mapDbNameToUserInput(k)}
                                 name={k}
                                 value={
-                                    k != 'password' ?
-                                    this.state.userJson[k] : ''
+                                    this.state.userJson[k]
                                 }
                                 style={{
                                     borderColor: 'black'
@@ -116,7 +162,6 @@ export class Profile extends Component{
                 )
             }
         }
-
         let accountBalanceDiv = <div></div>;
 
         if(this.state.userJson){
@@ -137,7 +182,22 @@ export class Profile extends Component{
             <br/>
             {accountBalanceDiv}
         </div>;
-        
+
+        let userCryptosTd = <div></div>;
+
+       if(this.state.userJson){
+            // array of crypto currencies
+            let userCryptos = this.state.userJson.cryptoAccountId.cryptoCurrency;
+
+            if(this.state.tableCnt < userCryptos.length){
+                const uc = userCryptos[this.state.tableCnt];
+                userCryptosTd = <tr>
+                    <td>{uc.cryptoCurrencyId}</td>
+                    <td>{Number(uc.cryptoBalance).toFixed(2)}</td>
+                </tr>;
+            }
+
+       }
         return <div hidden={this.state.hidden}>
             <div>
                 <img 
@@ -150,6 +210,33 @@ export class Profile extends Component{
                 ></img>
             </div>
             {form}
+            <div hidden={this.state.hiddenInfo}>
+                <table>
+                    <thead>
+                        <th>Currency:</th>
+                        <th>Amount:</th>
+                    </thead>
+                    {userCryptosTd}
+                </table>
+                <div style={{
+                    display:'grid',
+                    gridTemplateAreas: 'a b'
+                    }}>
+
+                    <img src={leftArrowPic} width='50px' height='30px' alt='left' name='left'
+                    style={{
+                        gridArea:'a',
+                        paddingRight: '200px'
+                    }} onClick={this.onArrowClick}/>
+
+                    <img src={rightArrowPic} width='50px' height='30px' alt='right' name='right'
+                    style={{
+                        gridArea:'a',
+                        paddingLeft: '200px'
+                    }} onClick={this.onArrowClick}/>
+
+                </div>
+            </div>
         </div>
     }
 }

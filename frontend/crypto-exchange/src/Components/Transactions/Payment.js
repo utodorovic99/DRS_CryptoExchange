@@ -36,13 +36,16 @@ export class Payment extends Component{
                     color: 'black'
                 }
             },
+            paymentVerified: true,
             hidden: sessionStorage.getItem('userJson') === null
         };
 
         this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentWillUnmount = this.componentWillUnmount.bind(this);
         this.onLoginShow = this.onLoginShow.bind(this);
         this.onInputChange = this.onInputChange.bind(this);
         this.onBuy = this.onBuy.bind(this);
+        this.validInput = this.validInput.bind(this);
     }
 
     componentDidMount(){
@@ -55,6 +58,13 @@ export class Payment extends Component{
 
     onLoginShow(){
         this.state.hidden = loginStore.getState().type === NO_USER_LOGGED;
+        if(!this.state.hidden){
+            this.state.paymentVerified = JSON.parse(loginStore.getState().userJson).verified; 
+            if(!Boolean(this.state.paymentVerified)){
+                this.state.formData.amount = 1;
+            }
+        }
+        
         this.setState(this.state);
     }
 
@@ -65,12 +75,16 @@ export class Payment extends Component{
         this.setState(this.state); 
     }
 
-    onBuy(){
+    validInput(){
         let validCard = this.state.formData.cardNumber.value == tempCardData.cardNumber &&
             `${this.state.formData.month.value}/${this.state.formData.year.value}` == tempCardData.validUntil &&
             String(this.state.formData.cvc.value) == tempCardData.cvc;
 
-        if(validCard){
+        return validCard && this.state.formData.amount.value != '';
+    }
+
+    onBuy(){
+        if(this.validInput()){
             const body = {
                 email : JSON.parse(sessionStorage.getItem('userJson')).email,
                 amount: this.state.formData.amount.value
@@ -109,16 +123,20 @@ export class Payment extends Component{
             .catch(err => alert(err));
         }
         else{
-            alert('Invalid card.');
+            alert('Invalid input.');
         }
     }
 
     render(){
+
         return <div hidden={this.state.hidden} className='transtactionDiv'>
             <label>Add money:</label>
             <br/>
             <input 
-                type='number' placeholder='Amount:' value={this.state.formData.amount.value}
+                type='number' placeholder='Amount:' disabled={!this.state.paymentVerified}
+                value={
+                    this.state.paymentVerified ?
+                    this.state.formData.amount.value : 1}
                 name="amount"
                 style={{
                     color: this.state.formData.amount.color

@@ -4,9 +4,10 @@ import { LRContainer } from './Components/Profile/LoginRegisterContainer';
 import { Profile } from './Components/Profile/Profile';
 import { CryptoTable } from './Components/Crypto/CryptoTable';
 import { SendCurrency } from './Components/Transactions/SendCurrency';
-import { Exchange } from './Components/Transactions/Exhange';
 import { Payment } from './Components/Transactions/Payment';
 import { Transactions } from './Components/Transactions/Transactions';
+import { BuyCurrency } from './Components/Transactions/BuyCurrency';
+import { Exchange } from './Components/Transactions/Exchange';
 
 function App() {
   return (
@@ -33,10 +34,13 @@ function App() {
             <Payment></Payment>
           </div>
           <div className='item5App'>
-            <Exchange></Exchange>
+            <BuyCurrency/>
           </div>
           <div className='item6App'>
             <Transactions></Transactions>
+          </div>
+          <div className='item7App'>
+            <Exchange></Exchange>
           </div>
         </div>
       </header>

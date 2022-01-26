@@ -71,7 +71,7 @@ export class Login extends Component{
                 if(!res.ok) throw Error("Wrong credentials.");
                 let loggedUser = await res.json();
 
-                alert(String("User logged:" + JSON.stringify(loggedUser)));
+                // alert(String("User logged:" + JSON.stringify(loggedUser)));
                 sessionStorage.setItem('userJson', JSON.stringify(loggedUser));
     
                 loginShowStore.dispatch({
