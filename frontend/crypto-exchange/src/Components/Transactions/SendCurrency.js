@@ -30,14 +30,30 @@ export class SendCurrency extends Component{
         fetch(getViewUrl("getCryptoCurrencies"))
         .then(async res => {
             let data = await res.json();
-            for(let d in data){
-                this.state.cryptoOptions.push(data[d]);
+            this.state.cryptoOptions = [];
+
+            if(data.length == 0){
+                fetch(getViewUrl("updateCryptoCurrency"))
+                .then(async r => {
+                    data = await r.json();
+                    this.state.cryptoOptions = [];
+
+                    for(let d in data){
+                        this.state.cryptoOptions.push(data[d]);
+                    }
+                    this.setState(this.state);
+                })
+                .catch(e => alert(e));
             }
-            this.setState(this.state);
+            else {
+                for(let d in data){
+                    this.state.cryptoOptions.push(data[d]);
+                }
+                this.setState(this.state);
+            }
         });
 
         this.fillCurrencies();
-
         this.unsubLogin = loginStore.subscribe(this.onLoginShow);
     }
 
@@ -62,29 +78,35 @@ export class SendCurrency extends Component{
             fetch(getViewUrl("getUserCryptos") + `?id=${userJson.id}`)
             .then(async res => {
                 let ucJson = await res.json();
-
                 for (let i = 0; i < ucJson.length; i++) {
                     this.state.userCryptos.push(ucJson[i]);                    
                 }
+
+                if(ucJson.length > 0){
+                    this.state.selectedCurrency = ucJson[0].cryptoCurrencyId;
+                }
+
+                this.setState(this.state);
             })
             .catch(err => alert(err));
         }
-
-        this.setState(this.state);
+       
     }
 
 
     onLoginShow(){
         this.state.hidden = loginStore.getState().type === NO_USER_LOGGED;
-        this.fillCurrencies();
         this.setState(this.state);
+        this.fillCurrencies();
     }
 
 
     validInput(){
-        return this.state.selectedCurrency == '' &&
-                this.state.amount == '' &&
-                this.state.email == '';
+        console.log(this.state.selectedCurrency);
+
+        return this.state.selectedCurrency != '' &&
+                this.state.amount != '' &&
+                this.state.email != '';
     }
 
     onSendCurrency(){
@@ -192,7 +214,7 @@ export class SendCurrency extends Component{
                 value={this.state.email}             
                 onChange={this.onInputChange}></input>
             <br/>
-            <select disabled={false} onChange={this.onCurrencySelect}>
+            <select onChange={this.onCurrencySelect}>
                 {currenciesOpt}
             </select>
             <br/>

@@ -231,10 +231,7 @@ def updateUser():
 
 @app.route('/buyNewCrypto',methods = ['POST'])
 def BuyCrypto():
-    
-    print(request)
     body = json.loads(request.data.decode('utf-8'))
-    print(body)
     email = body["email"]
     amountDollars = body["amountDollars"]
     cryptoCurrency = body["cryptoCurrency"]

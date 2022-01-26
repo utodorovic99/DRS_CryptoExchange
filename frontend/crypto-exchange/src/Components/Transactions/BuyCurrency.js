@@ -33,11 +33,28 @@ export class BuyCurrency extends Component{
         fetch(getViewUrl("getCryptoCurrencies"))
         .then(async res => {
             let data = await res.json();
+            if(data.length == 0){
+                fetch(getViewUrl("updateCryptoCurrency"))
+                .then(async r => {
+                    data = await r.json();
+                    this.state.cryptoOptions = [];
 
-            for(let d in data){
-                this.state.cryptoOptions.push(data[d]);
+                    for(let d in data){
+                        this.state.cryptoOptions.push(data[d]);
+                    }
+        
+                    this.setState(this.state);
+                })
+                .catch(e => alert(e));
             }
-            this.setState(this.state);
+            else {
+                this.state.cryptoOptions = [];
+                for(let d in data){
+                    this.state.cryptoOptions.push(data[d]);
+                }
+    
+                this.setState(this.state);
+            }
         });
         this.unsubLogin = loginStore.subscribe(this.onLoginShow);
     }
@@ -80,9 +97,7 @@ export class BuyCurrency extends Component{
             alert('Invalid input.');
             return;
         }
-
         let exRate = this.findExchangeRate(this.state.formData.cryptoName.value);
-
         let userEmail = JSON.parse(sessionStorage.getItem('userJson')).email;
         let cryptoAmount = Number(this.state.formData.amount.value);
         let dollarAmount = cryptoAmount * Number(exRate);
@@ -123,7 +138,6 @@ export class BuyCurrency extends Component{
 
     render(){
         let currenciesOpt = []
-
         for (let i = 0; i < this.state.cryptoOptions.length; i++) {
             currenciesOpt.push(
             <option value={this.state.cryptoOptions[i].cryptoName}>

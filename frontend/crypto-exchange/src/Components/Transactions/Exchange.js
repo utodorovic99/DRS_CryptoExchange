@@ -33,11 +33,28 @@ export class Exchange extends Component{
         fetch(getViewUrl("getCryptoCurrencies"))
         .then(async res => {
             let data = await res.json();
+            this.state.cryptoOptions = [];
 
-            for(let d in data){
-                this.state.cryptoOptions.push(data[d]);
+            if(data.length == 0){
+                fetch(getViewUrl("updateCryptoCurrency"))
+                .then(async r => {
+                    data = await r.json();
+                    this.state.cryptoOptions = [];
+
+                    for(let d in data){
+                        this.state.cryptoOptions.push(data[d]);
+                    }
+                    
+                    this.setState(this.state);
+                })
+                .catch(e => alert(e));
             }
-            this.setState(this.state);
+            else {
+                for(let d in data){
+                    this.state.cryptoOptions.push(data[d]);
+                }
+                this.setState(this.state);
+            }
         });
 
         this.fillCurrencies();
@@ -56,6 +73,11 @@ export class Exchange extends Component{
                 for (let i = 0; i < ucJson.length; i++) {
                     this.state.userCryptos.push(ucJson[i]);                    
                 }
+
+                if(ucJson.length > 0){
+                    this.state.currencies.from = ucJson[0].cryptoCurrencyId;
+                }
+
             })
             .catch(err => alert(err));
         }

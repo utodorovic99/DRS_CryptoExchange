@@ -112,20 +112,20 @@ export class Transactions extends Component{
         switch (e.target.value) {
             case 'done':
                 this.state.tempTransactions = this.state.transactions.filter(
-                    t => t.state == 'DONE'
+                    t => t.state == 'PROCESSED'
                 );
                 break;
             case 'inpg':
                 this.state.tempTransactions = this.state.transactions.filter(
-                    t => t.state == 'IN PROGRESS'
+                    t => t.state == 'PROCESSING'
                 );
                 break;
             case 'canceled':
                 this.state.tempTransactions = this.state.transactions.filter(
-                    t => t.state == 'CANCELED'
+                    t => t.state == 'DECLINED'
                 );
                 break;                
-            case 'none':
+            case 'all':
                 this.state.tempTransactions = [...this.state.transactions];
                 break;
         }
@@ -190,10 +190,10 @@ export class Transactions extends Component{
                                 textAlign: 'center'
                             }}
                         >
-                            <option value="none">None</option>
-                            <option value="done">Done</option>
-                            <option value="inpg">In progress</option>
-                            <option value="canceled">Canceled</option>
+                            <option value="all">All</option>
+                            <option value="done">Processed</option>
+                            <option value="inpg">Processing</option>
+                            <option value="canceled">Declined</option>
                         </select>
                     </th>
                 </thead>

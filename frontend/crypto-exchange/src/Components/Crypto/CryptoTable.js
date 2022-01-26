@@ -30,16 +30,36 @@ export class CryptoTable extends Component{
         fetch(getViewUrl("getCryptoCurrencies"))
         .then(async res => {
             let data = await res.json();
-            this.state.cryptos = [];
             
-            for(let d in data){
-                this.state.cryptos.push({
-                    name: data[d].cryptoName,
-                    value: data[d].exchangeRate
-                });
-            }
+            if(data.length == 0){
+                fetch(getViewUrl("updateCryptoCurrency"))
+                .then(async r => {
+                    data = await r.json();
+                    this.state.cryptos = [];
 
-            this.setState(this.state);
+                    for(let d in data){
+                        this.state.cryptos.push({
+                            name: data[d].cryptoName,
+                            value: data[d].exchangeRate
+                        });
+                    }
+        
+                    this.setState(this.state);
+                })
+                .catch(e => alert(e));
+            }
+            else {
+                this.state.cryptos = [];
+
+                for(let d in data){
+                    this.state.cryptos.push({
+                        name: data[d].cryptoName,
+                        value: data[d].exchangeRate
+                    });
+                }
+    
+                this.setState(this.state);
+            }
         });
 
         this.unsubLogin = loginStore.subscribe(this.onLoginShow);
