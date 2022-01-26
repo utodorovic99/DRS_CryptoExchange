@@ -5,7 +5,7 @@ from serializer import CryptoCurrencyJson, CryptoCurrencyAccountJson
 
 
 class TransactionJson(ma.Schema):
-    hashId = fields.String()
+    hashID = fields.String()
     amount = fields.Float()
     state = fields.Str()
     cryptoCurrencyId = fields.Nested(CryptoCurrencyJson)

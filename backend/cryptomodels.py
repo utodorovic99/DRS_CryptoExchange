@@ -1,12 +1,15 @@
 
+from enum import unique
 from config import db
 from usermodels import *
 
 class CryptoCurrency(db.Model):
     __tablename__="cryptocurrency"
+    # __table_args__ = (db.UniqueConstraint('cryptoName', 'name', name='cryptoCurrencyId'),)
     id = db.Column(db.Integer, primary_key = True)
-    cryptoName = db.Column(db.String(10))
+    cryptoName = db.Column(db.String(10), unique=True)
     exchangeRate = db.Column(db.Float)
+    # __table_args__ = (db.UniqueConstraint('cryptoName'), )
     def __init__(
             self, cryptoName, exchangeRate
         ):

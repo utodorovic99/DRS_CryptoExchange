@@ -1,0 +1,18 @@
+FROM postgres:14
+
+COPY debug.sh ./
+
+COPY pg_hba.conf ./etc/postgresql/14/main/pg_hba.conf
+COPY postgresql.conf ./etc/postgresql/14/main/postgresql.conf
+# RUN sh debug.sh
+# RUN echo "host all  all    0.0.0.0/0  md5" >> ./etc/postgresql/14/main/pg_hba.conf
+# RUN echo "listen_addresses='*'" >> ./etc/postgresql/14/main/postgresql.conf
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=admin
+ENV POSTGRES_PORT=5432
+# RUN psql postgres -c "CREATE DATABASE cryptoexchange"
+ENV POSTGRES_DB=cryptoexchange
+# ENV POSTGRES_HOST_AUTH_METHOD=trust
+EXPOSE 5432
+
+CMD ["psql", "postgres", "-c", "\"CREATE DATABASE cryptoexchange\""]

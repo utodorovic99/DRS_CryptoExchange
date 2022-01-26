@@ -45,13 +45,13 @@ def GetUserCryptos():
 
 @app.route("/getCryptoCurrencies", methods=['GET'])
 def GetAllCurrencies():
-    def myFunc(e):
-        return e['id']
+    # def myFunc(e):
+    #     return e['id']
 
  
     allCryptos  = CryptoCurrency.query.all()
     cryptos = list(allCryptos)
-    cryptos.sort(key=myFunc)
+    # cryptos.sort(key=myFunc)
    
     jsonobject = CryptoCurrencyJson(many=True)
     
@@ -76,12 +76,12 @@ def CheckBalance():
     return jsonify(userr),200
 
 
-# @app.route("/create")
-# def create():
+@app.route("/create")
+def create():
     
-#     db.create_all()
-#     db.session.commit()
-#     return "All tables created"
+    db.create_all()
+    db.session.commit()
+    return "All tables created"
 
 @app.route("/updateCryptoCurrency", methods=['GET'])
 def getCryptoData():
@@ -102,8 +102,6 @@ def getCryptoData():
     def myFunc(e):
         return e['id']
 
-    db.session.rollback()
-
     try:
         response = session.get(url, params=parameters)
         data = json.loads(response.text)
@@ -121,7 +119,10 @@ def getCryptoData():
                 if tempcc is None:
                     cryptoCurr = CryptoCurrency(str(d['symbol']), float(d['quote']['USD']['price']))
                     # cryptoCurr.cryptoName = str(d['symbol'])
-                    print(cryptoCurr.cryptoName)
+                    cryptoCurr.cryptoName = str(cryptoCurr.cryptoName[0])
+                    print(cryptoCurr.cryptoName[0])
+                    print(type(cryptoCurr.cryptoName))
+                    print(type(cryptoCurr.cryptoName[0]))
                 # cryptoCurr =CryptoCurrency.query.filter_by(cryptoName=d['symbol']).first()
                     db.session.add(cryptoCurr)
                 # db.session.
@@ -130,7 +131,7 @@ def getCryptoData():
                     tempcc.exchangeRate=d['quote']['USD']['price']
             except Exception as e:
                 print(e)
-                break
+                continue
 
     
         db.session.commit()
@@ -391,12 +392,13 @@ def StartTransaction():
     k = keccak.new(digest_bits=256)
     stringToHash = emailFrom+emailTo+str(amount)+str(rndint)
     k.update(stringToHash.encode('utf-8'))
+    print(str(k.hexdigest()))
 
     cryptoCurrencyId1 = body['cryptoName']
     userfromid = body['userfromid']
     #naci drugog po mejlu
     valid = False
-    userTo = (IUser.query.filter_by(email = body['emailTo']).first())
+    userTo = (IUser.query.filter_by(email=body['emailTo']).first())
     userToid = userfromid
 
     if userTo== None :
@@ -419,14 +421,13 @@ def StartTransaction():
     transaction =  Transaction()
     transaction.amount = float(body['amount'])
     transaction.hashID = str(k.hexdigest())
-    transaction.state= state 
+    transaction.state= str(state)
     transaction.userfromid = int(userfromid)
     transaction.usertoid = int(userToid)
-    transaction.cryptoCurrencyId = cryptoCurrencyId1 #CryptoCurrency.query.filter_by(cryptoName= cryptoCurrencyId).first()
+    transaction.cryptoCurrencyId = str(cryptoCurrencyId1) #CryptoCurrency.query.filter_by(cryptoName= cryptoCurrencyId).first()
 
     db.session.add(transaction)
     db.session.commit()
-
 
     jsonObject = TransactionJson()
     trJson  =  jsonObject.dump(transaction)
@@ -436,6 +437,7 @@ def StartTransaction():
     temp = curJson.dump(cur)
     trJson['cryptoCurrencyId'] = temp
 
+    print(trJson)
 
     # if valid == True:
     return jsonify(trJson),200
@@ -448,41 +450,7 @@ def announce(q1,q2):
     q2.put("done")
 
 def Mining(q1,hashId,userFromId,userToId,amount,cryptoCurrencyId):
-
     sleep(10)
-    cryptoAccountFrom = CryptoAccount.query.filter_by(userId=(userFromId)).first()
-    cryptoAccountTo = CryptoAccount.query.filter_by(userId=(userToId)).first()
-
-    allcryptoAccounts = list(CryptoCurrencyAccount.query.all())
-
-    for alc in allcryptoAccounts:
-        if (alc.cryptoCurrencyId==cryptoCurrencyId) and (alc.cryptoAccountId==cryptoAccountFrom.id):
-            cryptoCurrencyAccFrom = alc
-
-    for alc in allcryptoAccounts:
-        if (alc.cryptoCurrencyId==cryptoCurrencyId) and (alc.cryptoAccountId==cryptoAccountTo.id):
-            cryptoCurrencyAccTo = alc
-
-
-    balance = cryptoCurrencyAccFrom.cryptoBalance
-    balance = balance - (float(amount) + float(amount)*0.05)
-
-    cryptoCurrencyAccFrom.cryptoBalance= balance
-    db.session.add(cryptoCurrencyAccFrom)
-
-    db.session.commit()
-
-
-    cryptoCurrencyAccTo.cryptoBalance+= float( amount)
-
-    db.session.add(cryptoCurrencyAccTo)
-    db.session.commit()
-
-    transaction = Transaction.query.filter_by(hashID = hashId).first()
-    transaction.state= 'PROCESSED'
-    db.session.add(transaction)
-    db.session.commit()
-
     q1.put("done")
 
 
@@ -503,6 +471,38 @@ def StartMining():
     process1 = Process(target= Mining, args = (q1,hashId,userFromId,userToId,float(amount),cryptoCurrencyId))
     process1.start()
     q2.get()
+
+    cryptoAccountFrom = CryptoAccount.query.filter_by(userId=(userFromId)).first()
+    cryptoAccountTo = CryptoAccount.query.filter_by(userId=(userToId)).first()
+
+    allcryptoAccounts = list(CryptoCurrencyAccount.query.all())
+
+    for alc in allcryptoAccounts:
+        if (alc.cryptoCurrencyId==cryptoCurrencyId) and (alc.cryptoAccountId==cryptoAccountFrom.id):
+            cryptoCurrencyAccFrom = alc
+
+    for alc in allcryptoAccounts:
+        if (alc.cryptoCurrencyId==cryptoCurrencyId) and (alc.cryptoAccountId==cryptoAccountTo.id):
+            cryptoCurrencyAccTo = alc
+
+    balance = cryptoCurrencyAccFrom.cryptoBalance
+    balance = balance - (float(amount) + float(amount)*0.05)
+
+    cryptoCurrencyAccFrom.cryptoBalance= balance
+    db.session.add(cryptoCurrencyAccFrom)
+
+    db.session.commit()
+
+
+    cryptoCurrencyAccTo.cryptoBalance+= float( amount)
+
+    db.session.add(cryptoCurrencyAccTo)
+    db.session.commit()
+
+    transaction = Transaction.query.filter_by(hashID = hashId).first()
+    transaction.state= 'PROCESSED'
+    db.session.add(transaction)
+    db.session.commit()
 
     return jsonify({"Status message":"obavljeno"}),200
 
@@ -533,5 +533,4 @@ def crypto_currency():
         return {"count": len(results), "crypto ": results}
 
 if __name__ == '__main__':
-    
     app.run(debug=True)
