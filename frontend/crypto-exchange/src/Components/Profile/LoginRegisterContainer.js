@@ -5,6 +5,7 @@ import './LRContainer.css';
 import { loginShowStore, SHOW_LOGIN, SHOW_NONE, SHOW_REGISTER } from './LRShowingStore';
 import { lrContainerShowStore, SHOW } from './LRContainerStore';
 import { loginStore, NO_USER_LOGGED, USER_LOGGED } from './LoginStore';
+import { getViewUrl } from '../../Config';
 
 
 export class LRContainer extends Component{
@@ -26,6 +27,8 @@ export class LRContainer extends Component{
 
     componentDidMount(){
         this.unsubscribeShow = lrContainerShowStore.subscribe(this.onLRContainerShow);
+
+        fetch(getViewUrl('create'));
     }
 
     componentWillUnmount(){

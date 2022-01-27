@@ -7,10 +7,6 @@ COPY /frontend/crypto-exchange/src /src
 COPY /frontend/crypto-exchange/public /public
 
 RUN yarn install
-
-COPY /frontend/crypto-exchange/* ./
-
-CMD ["yarn", "start"]
 # RUN yarn build
 
 # FROM nginx:stable-alpine

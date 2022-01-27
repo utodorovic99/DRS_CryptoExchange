@@ -5,13 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    # command: ["flask", "run", "--host=0.0.0.0"]
-    # volumes:
-    #   - ./api:/backend
-    # environment:
-    #   - FLASK_ENV=development
-    #   - FLASK_APP=app.py
-    depends_on:
+    restart: always
+    links:
+      - db      
+    depends_on:   
       - db
     ports:
       - "5000:5000"
@@ -20,52 +17,23 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile.client
-    # volumes:
-    #   - ./client:/frontend
-    #   - node-modules:/frontend/node_modules
-    # environment:
-    #   - NODE_ENV=development
+    volumes:
+      - .:/core
     ports:
       - '3000:3000'
-    depends_on:
-      - api
-      - db
+    image: app:react
+    container_name: react_container
+    command: yarn start
+ 
   db:
-    image: postgres:13-alpine
-    volumes:
-      - type: volume
-        target: "/data"
+    image: mysql:latest
+    restart: always
+    ports:
+      - '3306:3306'
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=cryptoexchange
-
-# services:
-#   api:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile.api
-#     image: flask-api
-#     ports:
-#       - "5000:5000"
-#   client:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile.client
-#     image: react-client
-#     ports:
-#       - "3000:3000"
-#     depends_on:
-#       - db
-#       - api
-#     links:
-#       - api
-#   db:
-#     image: postgres:13-alpine
-#     volumes:
-#       - type: volume
-#         target: "/data"
-#     environment:
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=admin
-#       - POSTGRES_DB=cryptoexchange
+      MYSQL_DATABASE: 'mysql_db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: '1234'
+      MYSQL_ROOT_PASSWORD: '1234'
+        
+    container_name: flask_mysql

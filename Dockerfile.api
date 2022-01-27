@@ -4,13 +4,11 @@ FROM python:3.9.7-slim-buster
 
 WORKDIR ./backend
 
-COPY * ./
-RUN apt-get update \
-    && apt-get -y install libpq-dev gcc \
-    && pip install psycopg2
+COPY backend/*.py backend/.env backend/requirements.txt ./
+
 RUN pip install -r requirements.txt
 ENV FLASK_APP main.py
-ENV FLASK_ENV decdvelopment
+ENV FLASK_ENV development
 
 EXPOSE 5000
 CMD ["gunicorn", "-b", ":5000", "main:app"]
