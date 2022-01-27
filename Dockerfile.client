@@ -5,12 +5,13 @@ ENV PATH /node_modules/.bin:$PATH
 COPY /frontend/crypto-exchange/package.json /frontend/crypto-exchange/yarn.lock .
 COPY /frontend/crypto-exchange/src /src
 COPY /frontend/crypto-exchange/public /public
-
+ENV NODE_ENV=production
 RUN yarn install
-# RUN yarn build
+RUN yarn build
 
 # FROM nginx:stable-alpine
 # WORKDIR .
 # COPY /frontend/crypto-exchange/build /usr/share/nginx/html
 # EXPOSE 80
 # CMD ["nginx", "-g", "daemon off;"]
+

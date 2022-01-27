@@ -1,4 +1,5 @@
 
+from crypt import methods
 from flask import Flask, request, Response, jsonify
 import sqlalchemy
 from flask_cors import CORS
@@ -21,6 +22,8 @@ from time import sleep
 
 
 
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
 CORS(app, supports_credentials=False)
@@ -32,6 +35,13 @@ user_db.init_app(app)
 crypto_db.init_app(app)
 ma.init_app(app)
 
+with app.app_context():
+    db.create_all()
+    db.session.commit()
+
+@app.route('/', methods=['GET'])
+def hello():
+    return "OK"
 
 @app.route('/getUserCryptos', methods=['GET'])
 def GetUserCryptos():
@@ -79,8 +89,7 @@ def CheckBalance():
 @app.route("/create")
 def create():
     
-    db.create_all()
-    db.session.commit()
+    
     return "All tables created"
 
 @app.route("/updateCryptoCurrency", methods=['GET'])
@@ -533,4 +542,5 @@ def crypto_currency():
         return {"count": len(results), "crypto ": results}
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    from os import environ
+    app.run(debug=True, host='0.0.0.0', port=environ.get("PORT", 5000))

@@ -5,11 +5,9 @@ from usermodels import *
 
 class CryptoCurrency(db.Model):
     __tablename__="cryptocurrency"
-    # __table_args__ = (db.UniqueConstraint('cryptoName', 'name', name='cryptoCurrencyId'),)
     id = db.Column(db.Integer, primary_key = True)
     cryptoName = db.Column(db.String(10), unique=True)
     exchangeRate = db.Column(db.Float)
-    # __table_args__ = (db.UniqueConstraint('cryptoName'), )
     def __init__(
             self, cryptoName, exchangeRate
         ):
@@ -42,9 +40,9 @@ class CryptoCurrencyAccount(db.Model):
 
 class Transaction(db.Model):
     __tablename__ = "transaction"
-    hashID = db.Column(db.String(256), primary_key=True)
+    hashID = db.Column(db.String(64), primary_key=True)
     amount = db.Column(db.Float)
-    state = db.Column(db.String(100))
+    state = db.Column(db.String(30))
     cryptoCurrencyId = db.Column(
         db.String(10),
         db.ForeignKey(
